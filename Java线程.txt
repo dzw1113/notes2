@@ -1,0 +1,22 @@
+多线程(八)常用的线程模型
+http://www.cnblogs.com/PerkinsZhu/p/7570775.html
+
+系统间通信技术---------------------->精选
+https://blog.csdn.net/column/details/sys-communication.html?&page=3
+
+线程的运行状态：新建线程：NEW
+				启动线程：RUNNABLE
+				计时等待：TIMED_WAITING
+				等待线程：WAITING
+				唤醒线程：BLOCKED
+				终止线程：TERMINATED
+https://blog.csdn.net/hutuyaoniexi/article/details/80630728
+
+
+java 线程方法join的简单总结
+https://www.cnblogs.com/lcplcpjava/p/6896904.html
+join方法实现原理
+  其实，join方法是通过调用线程的wait方法来达到同步的目的的。
+  例如，A线程中调用了B线程的join方法，则相当于A线程调用了B线程的wait方法，在调用了B线程的wait方法后，A线程就会进入阻塞状态
+  
+  

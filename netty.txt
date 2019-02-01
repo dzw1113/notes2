@@ -1,0 +1,77 @@
+﻿
+netty快速入门
+https://waylau.com/essential-netty-in-action/GETTING%20STARTED/Netty%20Crash%20Course.html
+Netty学习笔记(二) Channel和ChannelFuture
+https://blog.csdn.net/lgj123xj/article/details/78577945
+
+netty demo
+https://github.com/netty/netty/tree/00bf06e97b96ce98cd707783d80fac38294dd1dc/example/src/main/java/io/netty/example
+
+netty静态文件传输
+https://github.com/netty/netty/blob/00bf06e97b96ce98cd707783d80fac38294dd1dc/example/src/main/java/io/netty/example/http/file/HttpStaticFileServerInitializer.java
+If-Modified-Since是标准的HTTP请求头标签，在发送HTTP请求时，把浏览器端缓存页面的最后修改时间一起发到服务器去，服务器会把这个时间与服务器上实际文件的最后修改时间进行比较。
+如果时间一致，那么返回HTTP状态码304（不返回文件内容），客户端接到之后，就直接把本地缓存文件显示到浏览器中
+
+
+分块编码（Transfer-Encoding: chunked）
+https://www.cnblogs.com/xuehaoyue/p/6639029.html
+
+对于 Netty ByteBuf 的零拷贝(Zero Copy) 的理解
+https://segmentfault.com/a/1190000007560884
+
+
+http download
+https://blog.csdn.net/mcpang/article/details/41140171
+
+
+Netty4学习笔记（4）-- ByteBuf和设计模式
+https://blog.csdn.net/zxhoo/article/details/17577865
+
+
+ChannelPipeline:
+一个 ChannelPipeline 是用来保存关联到一个 Channel 的ChannelHandler
+可以修改 ChannelPipeline 通过动态添加和删除 ChannelHandler
+ChannelPipeline 有着丰富的API调用动作来回应入站和出站事件。
+
+
+ChannelHandlerContext:当 ChannelHandler 被添加到的 ChannelPipeline 它得到一个 ChannelHandlerContext，它代表一个 ChannelHandler 和 ChannelPipeline 之间的“绑定”。
+
+
+https://yq.aliyun.com/articles/97500
+https://www.cnblogs.com/zemliu/p/3667332.html
+ChannelHandlerContext======>>>>>writeAndFlush方法会将数据写到ChannelPipeline中当前ChannelHandler的下一个ChannelHandler开始处理
+
+ctx.fireChannelRead(job); 将处理后的结果发送到下一个Channel处理
+ctx.writeAndFlush()方法分为两步, 先 write 再 flush
+
+
+线程分发demo：
+https://blog.csdn.net/mubing870825/article/details/79876896
+
+基于Netty4构建HTTP服务----浏览器访问和Netty客户端访问
+https://blog.csdn.net/wangshuang1631/article/details/73251180
+
+深入浅出Netty
+https://www.jianshu.com/p/1ad424c53e80
+
+Java多线程的调度策略
+https://blog.csdn.net/wangyangzhizhou/article/details/41122385
+
+Java读取文件加锁代码Demo(利用Java的NIO)
+https://www.cnblogs.com/DreamDrive/p/7425281.html
+
+Netty4之Future/Promise异步模型
+https://blog.csdn.net/chen_fly2011/article/details/56480956
+
+spring 整合netty
+https://blog.csdn.net/shzy1988/article/details/78841140
+
+netty4 HTTPclient 可添加参数
+https://www.cnblogs.com/justeene/p/4045567.html
+
+
+回调函数变主动调用函数
+https://www.cnblogs.com/xinsheng/p/5546603.html
+
+Netty4 Tcp长连接、断开重连、心跳监测、Msgpack编码解码
+https://blog.csdn.net/giousa/article/details/72846303

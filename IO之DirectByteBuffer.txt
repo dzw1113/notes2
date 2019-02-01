@@ -1,0 +1,6 @@
+SoftReference
+
+
+
+内存条是什么 有什么用？小白必看内存知识扫盲 通俗
+https://www.pc841.com/article/20180523-89755_all.html

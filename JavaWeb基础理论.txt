@@ -1,0 +1,66 @@
+https://blog.csdn.net/xiaojie119120/article/details/73274759
+JavaWeb三大组件之一（Servlet、Filter、Listener）
+
+JavaWeb三大组件之Servlet
+https://blog.csdn.net/z498596750/article/details/52555027
+Servlet的任务有：
+    > 获取请求数据
+    > 处理请求
+    > 完成响应
+	
+servlet的九大内置对象和四大域对象
+http://www.cnblogs.com/keyi/p/7117420.html
+request              请求对象　                类型 javax.servlet.ServletRequest               作用域 Request
+response             响应对象                  类型 javax.servlet.SrvletResponse               作用域 Page 
+pageContext          页面上下文对象            类型 javax.servlet.jsp.PageContext              作用域 Page 
+session              会话对象                  类型 javax.servlet.http.HttpSession             作用域 Session  
+application          应用程序对象              类型 javax.servlet.ServletContext               作用域 Application 
+out                  输出对象                  类型 javax.servlet.jsp.JspWriter                作用域 Page 
+config               配置对象                  类型 javax.servlet.ServletConfig                作用域 Page 
+page                 页面对象                  类型 javax.lang.Object                          作用域 Page 
+exception            例外对象                  类型 javax.lang.Throwable                       作用域 page
+
+--------------**************----------分界线----------******************************-------------------
+
+JavaWeb三大组件之Filter
+https://blog.csdn.net/zhaoliyou/article/details/52453050
+
+--------------**************----------分界线----------******************************-------------------
+
+JavaWeb三大组件之Listener
+https://blog.csdn.net/zhaoliyou/article/details/52453050
+Java中用到监听器的地方：AWT、SAX，监听器中肯定有事件源、事件、监听器。监听器注册到事件源，当事件源发生某件特定的事儿的时候，就触发注册的监听器，调用监听器的相应的方法。
+
+JavaWeb中的监听器，事件源：三大域(ServletContext,HttpSession,ServletRequest)
+
+使用ServletContext实现数据共享和获得web.xml中的参数**********************
+https://www.cnblogs.com/danmao/p/3828813.html
+
+Ø  ServletContext
+¨      生命周期监听：ServletContextListener，它有两个方法，一个在出生时调用，一个在死亡时调用；
+                                     void contextInitialized(ServletContextEvent sce)：创建Servletcontext时
+                                     void contextDestroyed(ServletContextEvent sce)：销毁Servletcontext时									 
+¨      属性监听：ServletContextAttributeListener，它有三个方法，一个在添加属性时调用，一个在替换属性时调用，最后一个是在移除属性时调用。
+                                    void attributeAdded(ServletContextAttributeEvent event)：添加属性时；
+                                    void attributeReplaced(ServletContextAttributeEvent event)：替换属性时；
+                                    void attributeRemoved(ServletContextAttributeEvent event)：移除属性时；
+Ø  HttpSession
+¨      生命周期监听：HttpSessionListener，它有两个方法，一个在出生时调用，一个在死亡时调用；
+                                  voidsessionCreated(HttpSessionEvent se)：创建session时
+                                   void sessionDestroyed(HttpSessionEvent se)：销毁session时
+¨      属性监听：HttpSessioniAttributeListener，它有三个方法，一个在添加属性时调用，一个在替换属性时调用，最后一个是在移除属性时调用。
+                                  void attributeAdded(HttpSessionBindingEvent event)：添加属性时；
+                                  void attributeReplaced(HttpSessionBindingEvent event)：替换属性时
+                                  void attributeRemoved(HttpSessionBindingEvent event)：移除属性时
+Ø  ServletRequest
+¨      生命周期监听：ServletRequestListener，它有两个方法，一个在出生时调用，一个在死亡时调用；
+                                void requestInitialized(ServletRequestEvent sre)：创建request时
+                                void requestDestroyed(ServletRequestEvent sre)：销毁request时
+¨      属性监听：ServletRequestAttributeListener，它有三个方法，一个在添加属性时调用，一个在替换属性时调用，最后一个是在移除属性时调用。
+                                void attributeAdded(ServletRequestAttributeEvent srae)：添加属性时
+                                void attributeReplaced(ServletRequestAttributeEvent srae)：替换属性时
+                                void attributeRemoved(ServletRequestAttributeEvent srae)：移除属性时
+
+
+--------------**************----------分界线----------******************************-------------------
+

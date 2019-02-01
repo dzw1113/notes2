@@ -1,0 +1,8 @@
+Java并发编程基础-Unsafe 原
+https://my.oschina.net/gordonfor/blog/1922683
+
+JAVA中神奇的双刃剑--Unsafe
+https://www.cnblogs.com/throwable/p/9139947.html
+
+JAVA架构精读--一分钟理解负载LoadAverage
+https://www.oschina.net/question/3530609_2246182

@@ -1,0 +1,107 @@
+https单向：
+
+1：生成证书
+交互式：keytool -genkey -alias tomcat -keyalg RSA -keysize 1024 -validity 365 -keystore tomcat.keystore
+一步到位：keytool -genkeypair -alias tomcat -keypass 123456 -keyalg RSA -keysize 1024 -keystore tomcat.keystore -storepass 123456 -dname "CN=127.0.0.1, OU=dzw, O=dzw, L=dzw, ST=dzw, C=dzw"
+
+
+导出证书：
+keytool -exportcert -alias tomcat -file tomcat.crt -keystore tomcat.keystore -storepass 123456
+keytool -export -alias tomcat -keystore tomcat.keystore -file tomcat.cer -storepass 123456
+
+https://127.0.0.1:8443/
+chrome://settings/?search=%E8%AF%81%E4%B9%A6
+chrome://settings/?search=%E4%BB%A3
+
+2：修改tomcat conf server.xml
+keystoreFile="conf/tomcat.keystore"  
+keystorePass="123456"------------------生成证书时输入的
+
+
+<Connector port="8443" 
+      protocol="org.apache.coyote.http11.Http11Protocol" 
+      maxThreads="150"  
+      SSLEnabled="true"  
+      scheme="https"  
+      secure="true" 
+      keystoreFile="conf/tomcat.keystore"  
+      keystorePass="123456"
+      clientAuth="false"  
+      sslProtocol="SSL"  
+      ciphers="TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+                    TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+                    TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+                    TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+                    TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+                    TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, 
+                    TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA, 
+                    TLS_ECDHE_ECDSA_WITH_RC4_128_SHA, 
+                    TLS_ECDHE_RSA_WITH_RC4_128_SHA, 
+                    TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
+                    TLS_DHE_DSS_WITH_AES_128_CBC_SHA,
+                    TLS_DHE_RSA_WITH_AES_256_CBC_SHA, 
+                    TLS_RSA_WITH_AES_128_GCM_SHA256,
+                    TLS_RSA_WITH_AES_128_CBC_SHA,
+                    TLS_RSA_WITH_AES_256_CBC_SHA,
+                    TLS_RSA_WITH_3DES_EDE_CBC_SHA,
+                    TLS_RSA_WITH_RC4_128_SHA,
+                    TLS_RSA_WITH_RC4_128_MD5" 
+        sslEnabledProtocols="TLSv1.2" />
+		
+3：访问https://127.0.0.1:8443/
+		
+		
+		
+生成服务器证书		
+keytool -genkey -alias tomcat -keypass 123456 -keyalg RSA -keysize 1024 -keystore tomcat.keystore -storepass 123456 -dname "CN=127.0.0.1, OU=dzw, O=dzw, L=dzw, ST=dzw, C=dzw"
+生成客户端证书
+keytool -genkey -v -alias mykey -keyalg RSA -storetype PKCS12 -keystore mykey.p12 
+
+让服务器信任客户端证书
+keytool -export -alias mykey -keystore mykey.p12 -storetype PKCS12 -storepass 123456 -rfc -file mykey.cer
+
+
+keytool -import -v -file mykey.cer -keystore tomcat.keystore
+
+keytool -list -keystore tomcat.keystore
+
+
+让客户端信任服务器证书
+keytool -keystore tomcat.keystore -export -alias tomcat -file tomcat.cer
+
+
+openssl、x509、crt、cer、key、csr、ssl、tls 这些都是什么鬼?
+https://www.cnblogs.com/yjmyzz/p/openssl-tutorial.html
+JKS后缀：JAVA KeyStore，Java密钥库。
+PFX后缀：公钥加密技术12号标准(Public Key Cryptography Standards #12,PKCS#12)，pfx是微软支持的私钥格式。
+CSR后缀：Certificate Signing Request，证书签名请求文件，拿这个可以去CA中心申请PEM文件，如果是自己玩，自己生成就好了。
+
+
+
+
+
+
+第一步：为服务器生成证书
+keytool -genkey -alias tomcat -keypass 123456 -keyalg RSA -keysize 1024 -validity 365 -keystore tomcat.keystore -storepass 123456 -dname "C=CN,ST=Shanghai,L=Shanghai,O=dzw,OU=dzw,CN=dzw.com"
+
+第二步：为客户端生成证书：为浏览器生成证书，以便让服务器来验证它
+keytool -genkey -alias client -keypass 123456 -keyalg RSA -keysize 1024 -validity 365 -storetype PKCS12 -keystore client.p12 -storepass 123456 -dname "C=CN,ST=Shanghai,L=Shanghai,O=dzw,OU=dzw,CN=dzw.com"
+
+
+第三步：让服务器信任客户端证书：由于不能直接将PKCS12格式的证书库导入，必须先把客户端证书导出为一个单独的CER文件
+keytool -export -alias client -keystore client.p12 -storetype PKCS12 -keypass 123456 -file client.cer
+
+将该文件导入到服务器的证书库，添加为一个信任证书
+keytool -import -v -file client.cer -keystore tomcat.keystore -storepass 123456
+
+可以看到两个证书，一个是服务器证书，一个是受信任的客户端证书
+keytool -list -v -keystore tomcat.keystore
+
+
+第四步：让客户端信任服务器证书：
+	由于是双向SSL认证，客户端也要验证服务器证书，因此，必须把服务器证书添加到浏览器的“受信任的根证书颁发机构”。由于不能直接将keystore格式的证书库导入，必须先把服务器证书导出为一个单独的CER文件
+keytool -keystore tomcat.keystore -export -alias tomcat -file server.cer
+双击server.cer文件，按照提示安装证书，将证书填入到“受信任的根证书颁发机构”
+
+
+  

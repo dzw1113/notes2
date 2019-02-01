@@ -1,0 +1,28 @@
+深入探讨 java.lang.ref 包
+https://www.ibm.com/developerworks/cn/java/j-lo-langref/index.html
+
+jvm引用实例分析（强引用，软使用，弱引用，虚引用）
+https://blog.csdn.net/kuiyi3269/article/details/77284737
+
+java -javaagent:D:\kidmadeto\agentmonitor\target\agentmonitor-0.0.1.jar -cp agentmonitor-0.0.1.jar bytecode.TargetClassTester
+
+C语言（彻底理解指针和地址，彻底！）
+https://blog.csdn.net/vincent040/article/details/51072675
+
+c++中变量、变量名、变量地址、指针、引用等含义
+https://www.cnblogs.com/xuhj001/p/3436143.html
+指针=变量，就是一个房间，它有编号（地址），他有名字（变量名），他有内容（里面的人）、int a = 3;   // a 是名字，3 是内容，地址可以假设是0x 12345678 (通常就是32位地址)、// 0x12345678 这个房间里面住的是一个int，
+
+32位操作系统中的32位数到底指什么？
+https://zhidao.baidu.com/question/455514354689337085.html
+在早期的计算机中，内存是很小的，当时就分配4个字节，1个字节8位来记录一个地址。
+4 * 8也就是32位。
+32位的数字可以表示的范围是00000000~FFFFFFFF。
+F代表的是16进制。换算成10进制的话，就是4294967295。
+内存的最小单位是Byte，也就是能表示4294967295Byte。
+然后进行数据换算
+4294967295 B = 4194303 KB = 4095 MB = 4 GB
+
+32位相当于只能表示区，街道，门牌号。
+64位可以表示星系，星球，国家，省，区，街道，门牌号。
+所以同样一个地址，64位可以用来管理整个宇宙。而32位只能管理一个市。

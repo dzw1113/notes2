@@ -1,0 +1,11 @@
+windows一键部署java项目
+https://blog.csdn.net/qq_19558705/article/details/80968807
+
+使用Inno Setup 打包jdk、mysql、tomcat、webapp等为一个exe安装包
+https://blog.csdn.net/cry_smile_hate/article/details/79442076
+
+SET与SETX的区别 
+http://blog.sina.com.cn/s/blog_5d24f04501016e2v.html
+
+Inno Setup使用进阶（一）
+http://www.blogjava.net/amigoxie/archive/2007/11/23/162586.html

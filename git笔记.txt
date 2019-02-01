@@ -1,0 +1,489 @@
+
+git操作命令大全
+https://git-scm.com/docs
+
+sourcetreea通过git-flow管理
+https://www.sourcetreeapp.com/
+
+利用sourceTree管理gitlab[纯操作]
+https://blog.csdn.net/Allen_Fei_/article/details/78743694
+
+git-flow视频教程
+https://www.imooc.com/learn/751
+
+Git 有三种状态，你的文件可能处于其中之一：已提交（committed）、已修改（modified）和已暂存（staged）
+Git 项目的三个工作区域的概念：Git 仓库、工作目录以及暂存区域。
+
+检查配置信息
+git config --list
+git config <key>
+
+git help config
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest
+$ git init                                                                                                              初始化
+Initialized empty Git repository in C:/Users/dzw/Desktop/新建文件夹/gittest/.git                                                                                               /
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)
+$ echo 'My Project' > README                                                                                            创建文件
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)
+$ git status                                                                                                            查看状态
+On branch master
+
+Initial commit
+
+Untracked files:                                                                                                        未被跟踪的文件
+  (use "git add <file>..." to include in what will be committed)
+
+        README
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)                                                        添加进暂存区
+$ git add README
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)                                                        查看状态
+$ git status
+On branch master
+
+Initial commit
+
+Changes to be committed:
+  (use "git rm --cached <file>..." to unstage)
+
+        new file:   README
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)                                                       重新修改文件
+$ echo 'My Project11' > README 
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)                                                       查看状态
+$ git status
+On branch master
+
+Initial commit
+
+Changes to be committed:
+  (use "git rm --cached <file>..." to unstage)
+
+        new file:   README                                                                                              暂存区的文件
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+        modified:   README                                                                                              修改的文件
+                                                                                                                        
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)
+$ git add README                                                                                                        重新添加进暂存区
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)                                                       
+$ git status                                                                                                            查看状态
+On branch master
+
+Initial commit
+
+Changes to be committed:
+  (use "git rm --cached <file>..." to unstage)
+
+        new file:   README
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)
+$ git status -s                                                                                                         状态简览
+A  README
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------
+$ git status -s
+ M README                                                                  出现在右边的 M 表示该文件被修改了但是还没放入暂存区（README 文件在工作区被修改了但是还没有将修改后的文件放入暂存区）
+MM Rakefile                                                                Rakefile 在工作区被修改并提交到暂存区后又在工作区中被修改了，所以在暂存区和工作区都有该文件被修改了的记录
+A lib/git.rb                                                               新添加到暂存区中的文件前面有 A 标记
+M lib/simplegit.rb                                                         出现在靠左边的 M 表示该文件被修改了并放入了暂存区（lib/simplegit.rb 文件被修改了并将修改后的文件放入了暂存区）
+?? LICENSE.txt                                                             新添加的未跟踪文件前面有 ?? 标记
+
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------
+$ cat .gitignore
+*.[oa]
+*~
+
+Git 忽略所有以 .o 或 .a 结尾的文件
+Git 忽略所有以波浪符（~）结尾的文件
+
+GitHub 有一个十分详细的针对数十种项目及语言的 .gitignore 文件列表，你可以在https://github.com/github/gitignore 找到它.
+
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------
+查看已暂存和未暂存的修改
+git diff                                                                                                                此命令比较的是工作目录中当前文件和暂存区域快照之间的差异， 也就是修改之后还没有暂存起来的变化内容。
+git diff --staged / git diff --cached                                                                                   若要查看已暂存的将要添加到下次提交里的内容，可以用 git diff --cached 命令。（Git 1.6.1 及更高版本还允许使用 git diff --staged，效果是相同的，但更好记些。）
+
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)
+$ echo 'My Project11' > README
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)
+$ git diff
+diff --git a/README b/README
+index 134ae15..fb7e647 100644
+--- a/README
++++ b/README
+@@ -1,2 +1 @@
+-My Project
+-1
+\ No newline at end of file
++My Project11		
+
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------
+git commit                                                                                                             提交更新
+
+Git 提供了一个跳过使用暂存区域的方式， 只要在提交的时候，给 git commit 加上 -a 选项，Git 就会自动把所有已经跟踪过的文件暂存起来一并提交，从而跳过 git add 步骤
+
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)
+$ echo 'My Project112' > README                                                                                        重新修改文件
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)
+$ git status
+On branch master
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+        modified:   README                                                                                             修改的文件
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)
+$ git commit -a -m 'added new benchmarks'                                                                              提交更新跳过暂存区，添加提交信息（新建的文件不允许，得先add）
+[master 21fcc3b] added new benchmarks                                                                                   
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gittest (master)
+$ git log
+commit 21fcc3b6efdc71a441bea1c755b4e95bcfe1afd5
+Author: dzwzw <dzw@qq.com>
+Date:   Wed Dec 12 13:28:34 2018 +0800
+
+    added new benchmarks                                                                                               本次提交的备注信息
+
+commit 64a5d9eeeb579dac1e9f7ccd61644dadf57bc705
+Author: dzwzw <dzw@qq.com>
+Date:   Wed Dec 12 13:20:00 2018 +0800
+
+    aa                                                                                                                 第一次提交的备注信息
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------
+要从 Git 中移除某个文件，就必须要从已跟踪文件清单中移除（确切地说，是从暂存区域移除），然后提交。
+
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gt (master)
+$ echo 'My Project112' > README                                                                                        创建文件
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gt (master)
+$ git status                                                                                                           查看状态
+On branch master
+
+Initial commit
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+        README                                                                                                         未被跟踪的文件
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gt (master)
+$ git add *                                                                                                            添加暂存区
+                                                                                                                      
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gt (master)
+$ git commit -a -m '加文'                                                                                              提交更新
+[master (root-commit) df2a24e] 加文
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gt (master)
+$ git status                                                                                                           查看状态
+On branch master
+nothing to commit, working directory clean
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gt (master)
+$ git log                                                                                                              查看提交日志
+commit df2a24e5ebe16da0bb770b0cef8c9fe448e107e5
+Author: dzwzw <dzw@qq.com>
+Date:   Wed Dec 12 13:42:33 2018 +0800
+
+    加文
+
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gt (master)
+$ git rm README                                                                                                        从暂存区移除文件，下一次提交时，该文件就不再纳入版本管理了。 如果删除之前修改过并且已经放到暂存区域的话，则必须要用强制删除选项 -f（译注：即 force 的首字母）。 这是一种安全特性，用于防止误删还没有添加到快照的数据，这样的数据不能被 Git 恢复。
+rm 'README'
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gt (master)
+$ git status                                                                                                           查看状态
+On branch master
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+        deleted:    README
+
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------
+想把文件从 Git 仓库中删除（亦即从暂存区域移除），但仍然希望保留在当前工作目录中。 
+换句话说，你想让文件保留在磁盘，但是并不想让 Git 继续跟踪。 当你忘记添加 .gitignore 文件，不小心把一个很大的日志文件或一堆 .a 这样的编译生成文件添加到暂存区时，这一做法尤其有用。 
+为达到这一目的，使用 --cached 选项
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gt (master)
+$ echo 'My Project112' > README123
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gt (master)
+$ git add README123
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gt (master)
+$ git rm --cached README123
+rm 'README123'
+
+		
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------
+移动文件： git mv file_from file_to
+$ git mv README.md README
+$ git status
+On branch master
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+  renamed: README.md -> README
+
+其实，运行 git mv 就相当于运行了下面三条命令：
+$ mv README.md README
+$ git rm README.md
+$ git add README
+
+
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------
+查看提交历史：git log -p -2
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gt (master)
+$ git log -2                                                                                                           显示最近两次的commit日志
+commit df2a24e5ebe16da0bb770b0cef8c9fe448e107e5
+Author: dzwzw <dzw@qq.com>
+Date:   Wed Dec 12 13:42:33 2018 +0800
+
+    加文
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/gt (master)
+$ git log -p                                                                                                           显示每次提交的内容差异。
+commit df2a24e5ebe16da0bb770b0cef8c9fe448e107e5
+Author: dzwzw <dzw@qq.com>
+Date:   Wed Dec 12 13:42:33 2018 +0800
+
+    加文
+
+diff --git a/README b/README
+new file mode 100644
+index 0000000..fe8165b
+--- /dev/null
++++ b/README
+@@ -0,0 +1 @@
++My Project112
+
+
+
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------
+
+远程仓库的使用
+
+
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------
+根据commitid回退到某一个时间点
+
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/aaa
+$ git init
+Initialized empty Git repository in C:/Users/dzw/Desktop/新建文件夹/aaa/.git/
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/aaa
+$ echo 1 > a
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/aaa (master)
+$ git add a
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/aaa (master)
+$ git commit -a -m '1'
+[master (root-commit) b2f92b1] 1
+ 1 file changed, 1 insertion(+)
+ create mode 100644 a
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/aaa (master)
+$ git log
+commit b2f92b1756c3886170186e1a61982c5c3c62044f
+Author: dzwzw <dzw@qq.com>
+Date:   Wed Dec 12 15:49:20 2018 +0800
+
+    1
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/aaa (master)
+$ echo 12 > a
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/aaa (master)
+$ git commit -a -m '2'
+[master 6fab314] 2
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/aaa (master)
+$ git status
+On branch master
+nothing to commit, working directory clean
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/aaa (master)
+$ git log
+commit 6fab314676c7b214860cbd9bde164f0bdf7249ab
+Author: dzwzw <dzw@qq.com>
+Date:   Wed Dec 12 15:49:45 2018 +0800
+
+    2
+
+commit b2f92b1756c3886170186e1a61982c5c3c62044f
+Author: dzwzw <dzw@qq.com>
+Date:   Wed Dec 12 15:49:20 2018 +0800
+
+    1
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/aaa (master)
+$ git reset --hard b2f92b1756c3886170186e1a61982c5c3c62044f                                                           根据commitid回退到某一个时间点
+HEAD is now at b2f92b1 1
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/aaa (master)
+$ cat a                                                                                                               校验文件
+1
+
+
+$ git reflog                                                                                                          查看操作日志
+b2f92b1 HEAD@{0}: reset: moving to b2f92b1756c3886170186e1a61982c5c3c62044f
+6fab314 HEAD@{1}: commit: 2
+b2f92b1 HEAD@{2}: commit (initial): 1
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/aaa (master)
+$ git reset --hard 6fab314                                                                                             根据commitid跳转到未来
+HEAD is now at 6fab314 2
+
+dzw@DESKTOP-DC23TOT MINGW64 ~/Desktop/新建文件夹/aaa (master)
+$ cat a                                                                                                                校验文件
+12
+
+
+-- 还原版本从远程分支拉取
+git reset --hard origin/1.3.10 
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------
+git 工作模式：
+1，集中式工作流（Subversion （或任何 CVCS）中的概念一样）：
+	集中式系统中通常使用的是单点协作模型——集中式工作流。 一个中心集线器，或者说仓库，可以接受代码，所有人将自己的工作与之同步。 若干个开发者则作为节点——也就是中心仓库的消费者——并且与其进行同步。
+
+2，集成管理者工作流(GitHub 和 GitLab 等集线器式（hub-based）工具最常用的工作流程)：	
+	1. 项目维护者推送到主仓库。
+	2. 贡献者克隆此仓库，做出修改。
+	3. 贡献者将数据推送到自己的公开仓库。
+	4. 贡献者给维护者发送邮件，请求拉取自己的更新。
+	5. 维护者在自己本地的仓库中，将贡献者的仓库加为远程仓库并合并修改。
+	6. 维护者将合并后的修改推送到主仓库。
+
+3，司令官与副官工作流：
+一般的开发者在自己的特性分支上工作，并不定期地根据主干分支（dictator 上的 master）衍合。
+副官（lieutenant）将普通开发者的特性分支合并到自己的 master 分支中。
+司令官（dictator）将所有副官的 master 分支并入自己的 master 分支。
+司令官（dictator）将集成后的 master 分支推送到共享仓库 blessed repository 中，以便所有其他开发者以此为基础进行衍合。
+	1. 普通开发者在自己的特性分支上工作，并根据 master 分支进行变基。 这里是司令官的`master`分支。
+	2. 副官将普通开发者的特性分支合并到自己的 master 分支中。
+	3. 司令官将所有副官的 master 分支并入自己的 master 分支中。
+	4. 司令官将集成后的 master 分支推送到参考仓库中，以便所有其他开发者以此为基础进行变基。
+
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------	
+切换分支：git checkout ls_90700
+切换远程分支：git checkout -b 本地分支名x origin/远程分支名x
+
+查看远程分支：git branch -r
+查看本地分支：git branch
+查看远程和本地分支：git branch -a 
+新建分支：git branch <branchname>
+删除本地分支：git branch -d <branchname>
+删除远程分支，删除后还需推送到服务器：git branch -d -r <branchname>/git push origin:<branchname>
+重命名本地分支：git branch -m <oldbranch> <newbranch>
+本地覆盖远程提交（慎用），并且建立关联：git push origin branch-name --force -u
+
+git fetch：是将远程主机的最新内容拉到本地，用户在检查了以后决定是否合并到工作本机分支中。
+git pull：则是将远程主机的最新内容拉下来后直接合并，即：git pull = git fetch + git merge，这样可能会产生冲突，需要手动解决。
+ 
+打包最近一次commit的patch：git format-patch -1 
+根据commitid打包patch：git format-patch e795fefabc
+打包某次提交以后的所有patch：git format-patch -s 4e16
+
+放弃掉以前的am信息：git am --abort 
+打入patch：git am *.patch
+
+
+打入patch，根据.rej文件手动解决所有冲突：git apply PATCH --reject
+先检查patch文件：git apply --stat newpatch.patch
+检查能否应用成功：git apply --check newpatch.patch
+打补丁：git am --signoff < newpatch.patch
+ 
+ 
+将本地版本库的分支推送到远程服务器上对应的分支：git push 
+将本地分支推送到与之存在追踪关系的远程分支（通常两者同名），如果该远程分支不存在，则会被新建：git push origin master
+将当前分支推送到origin主机的对应分支：git push origin
+将当前分支推送到origin主机的对应分支，并建立管理：git push -u origin ls_90800
+
+
+问题：
+$ git commit -a -m "增加制定医嘱打印"
+fatal: LF would be replaced by CRLF in
+
+解决：
+#提交包含混合换行符的文件时给出警告
+git config --global core.safecrlf warn
+
+
+
+查看commit内容
+git show 28ff2c199c75dfd71b490c7e239a24255d40cdc4
+
+git show commitId fileName
+
+
+git还原某个文件（未提交到远程的）
+git checkout 93b6eda cheetah/src/main/webapp/WEB-INF/web.xml
+
+
+
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------	
+
+统计文件的改动
+git diff <local branch> <remote>/<remote branch>
+
+git diff --stat master origin/master
+git diff --stat origin/1.3.11
+
+显示出所有有差异的文件的详细差异
+git diff origin/1.3.11
+
+
+显示指定文件的详细差异
+git diff origin/1.3.11 portal-platform/pom.xml
+
+
+
+------------------------------------------------------------------------------------分割线------------------------------------------------------------------------------------	
+忽略回车符合并: git merge branchname -s recursive -Xignore-space-at-eol -X renormalize
+git merge origin/ls_1.0.1 -s recursive -Xignore-space-at-eol -X renormalize
+
+
+
+

@@ -1,0 +1,231 @@
+
+Java动态代理机制详解（JDK 和CGLIB，Javassist，ASM）
+https://blog.csdn.net/luanlouis/article/details/24589193
+
+java核心技术之reflect(一)：一个系统学习reflect的Demo(精)
+https://blog.csdn.net/hfreeman2008/article/details/49027247
+
+
+关键一：包java.lang.reflect-------------------------------------------------------------------------------------
+
+包下面关键的几个类：
+Constructor-构造类	This class represents a constructor.
+Field-属性类	This class represents a field.
+Method-方法类	This class represents a method.
+Modifier-修饰符类	This class provides static methods to decode class and member modifiers
+
+
+关键二：类java.lang.Class-------------------------------------------------------------------------------------
+而reflect的源头是java.lang.Class类，Class类是reflect的总导演,所有java类都继承Object类，在Object类中有getClass()方法，该方法返回一个类型为Class的对象。
+
+java-----instanceof与getClass的区别
+https://blog.csdn.net/hzw19920329/article/details/51095413
+
+关键三：类Constructor-----------------------------------------------------------------------------------------------------
+访问指定的构造方法，需要根据该构造方法的入口参数的类型来访问
+
+
+关键四：类Field--------------------------------------------------------------------------------------------------------------
+访问指定的属性，需要根据该属性的名称来访问
+
+关键五：类Method--------------------------------------------------------------------------------------------------------------
+访问指定的方法，需要根据该方法的名称和入口参数的类型来访问。
+
+一个Java对象到底占用多大内存？
+https://www.cnblogs.com/magialmoon/p/3757767.html
+
+
+AOP（Aspect Orient Programming），作为面向对象编程的一种补充，广泛应用于处理一些具有横切性质的系统级服务，如事务管理、安全检查、缓存、对象池管理等。
+AOP 实现的关键就在于 AOP 框架自动创建的 AOP 代理，AOP 代理则可分为静态代理和动态代理两大类，其中静态代理是指使用 AOP 框架提供的命令进行编译，
+从而在编译阶段就可生成 AOP 代理类，因此也称为编译时增强；而动态代理则在运行时借助于 JDK 动态代理、CGLIB 等在内存中“临时”生成 AOP 动态代理类，因此也被称为运行时增强
+
+动态代理方案性能比较--------->ASM-->javaassit-->cglib（慢前面五倍）--->jdk自带的（慢前面的两倍）
+http://www.360doc.com/content/14/0801/12/1073512_398582179.shtml
+
+
+------------------------------------------------------------------动态代理Proxy----------------------------------------------------
+使用动态代理的五大步骤
+1.通过实现InvocationHandler接口来自定义自己的InvocationHandler，重写invoke方法; 
+2.通过Proxy.getProxyClass获得动态代理类 
+3.通过反射机制获得代理类的构造方法，方法签名为getConstructor(InvocationHandler.class) 
+4.通过构造函数获得代理对象并将自定义的InvocationHandler实例对象传为参数传入 
+5.通过代理对象调用目标方法
+
+-----------------------------------------------------------------------------JDK1.7---------------------------------
+Proxy核心方法：
+1，Proxy.newProxyInstance,三个参数，当前类的ClassLoader，父接口，执行handler。
+2，Proxy.getProxyClass0，通过把加载后的class缓存起来(Map+synchronize)，方便下次再次调用，没有的情况下通过ProxyGenerator生成，并定义。
+String proxyName = proxyPkg + proxyClassNamePrefix + num;
+byte[] proxyClassFile = ProxyGenerator.generateProxyClass(
+                    proxyName, interfaces);
+proxyClass = defineClass0(loader, proxyName,
+                        proxyClassFile, 0, proxyClassFile.length);
+						
+						
+-----------------------------------------------------------------------------JDK1.8---------------------------------
+深度剖析JDK动态代理机制
+https://www.cnblogs.com/MOBIN/p/5597215.html
+
+Proxy核心方法：
+1，Proxy.newProxyInstance,三个参数，当前类的ClassLoader，父接口，执行handler。
+2，Proxy.getProxyClass0，通过WeakCache.get代理类缓存（内部由ConcurrentHashMap存储），
+  如果缓存中有代理类了(supplier.get)直接返回，否则将由subKeyFactory(BiFunction)---->Proxy.ProxyClassFactory.apply创建代理类,
+  最终由ProxyGenerator.generateProxyClass生成，并定义。
+  byte[] proxyClassFile = ProxyGenerator.generateProxyClass(
+                proxyName, interfaces, accessFlags);
+  return defineClass0(loader, proxyName,proxyClassFile, 0, proxyClassFile.length);
+  
+  
+  
+  
+
+-----------------------------------------------------------------------------静态代理以 AspectJ---------------------------------
+AspectJ基本用法
+https://www.jianshu.com/p/27b997677149
+
+基于IDEA的aspectj项目demo
+https://blog.csdn.net/xqj198404/article/details/77651768
+
+  
+-----------------------------------------------------------------------------ProxyGenerator解析---------------------------------
+使用ProxyGenerator类生成字节码
+https://my.oschina.net/u/2474629/blog/703611
+
+JDK动态代理[2]----JDK动态代理的底层实现之Proxy源码分析
+https://www.cnblogs.com/liuyun1995/p/8157098.html
+
+----------------------JDK1.7--------------------------------start
+JDK动态代理[4]----ProxyGenerator生成代理类的字节码文件解析----JDK1.7
+https://www.cnblogs.com/liuyun1995/p/8144706.html
+
+----------------------JDK1.7---------------------------------end
+
+
+----------------------JDK1.8--------------------------------start
+JDK动态代理[3]----WeakCache缓存的实现机制
+https://www.cnblogs.com/liuyun1995/p/8144676.html
+
+----------------------JDK1.8---------------------------------end
+
+
+
+Instrumentation 实践详解
+https://blog.csdn.net/yczz/article/details/51656386
+
+
+---------------------------------------------------------------------------ASM字节码框架-----------------------
+ASM是一个Java字节码操纵框架，它能被用来动态生成类或者增强既有类的功能。ASM可以直接产生二进制class文件，也可以在类被加载入Java虚拟机之前动态改变类行为。
+Java class被存储在严格格式定义的.class文件里，这些类文件拥有足够的元数据来解析类中的所有元素：类名称、方法、属性以及 Java 字节码（指令）。
+ASM从类文件中读入信息后，能够改变类行为，分析类信息，甚至能够根据用户要求生成新类。
+1：BCEL：Byte Code Engineering Library (BCEL)，这是Apache Software Foundation 的Jakarta 项目的一部分。BCEL是 Java classworking 最广泛使用的一种框架,它可以让您深入 JVM 汇编语言进行类操作的细节。BCEL与Javassist 有不同的处理字节码方法，BCEL在实际的JVM 指令层次上进行操作(BCEL拥有丰富的JVM 指令级支持)而Javassist 所强调的源代码级别的工作。
+2：JBET：通过JBET(Java Binary Enhancement Tool )的API可对Class文件进行分解，重新组合，或被编辑。JBET也可以创建新的Class文件。JBET用一种结构化的方式来展现Javabinary (.class)文件的内容，并且可以很容易的进行修改。
+3：Javassist：Javassist是一个开源的分析、编辑和创建Java字节码的类库。是由东京技术学院的数学和计算机科学系的 Shigeru Chiba 所创建的。它已加入了开放源代码JBoss 应用服务器项目,通过使用Javassist对字节码操作为JBoss实现动态AOP框架。
+4：cglib：是一个强大的,高性能,高质量的Code生成类库。它可以在运行期扩展Java类与实现Java接口，cglib封装了asm，可以在运行期动态生成新的 class，Hibernate和Spring都用到过它。cglib用于AOP，jdk中的proxy必须基于接口，cglib却没有这个限制。
+
+asm简介
+https://www.cnblogs.com/clds/p/4985893.html
+
+
+关于java字节码框架ASM的学习
+https://www.cnblogs.com/liuling/archive/2013/05/25/asm.html
+
+ASM框架中的核心类有以下几个：
+①  ClassReader:该类用来解析编译过的class字节码文件。
+②  ClassWriter:该类用来重新构建编译后的类，比如说修改类名、属性以及方法，甚至可以生成新的类的字节码文件。
+③  ClassAdapter:该类也实现了ClassVisitor接口，它将对它的方法调用委托给另一个ClassVisitor对象。
+
+ClassVisitor调用顺序: visit visitSource? visitOuterClass? ( visitAnnotation | visitAttribute )* ( visitInnerClass | visitField | visitMethod )*  
+visitEnd 
+
+深入ASM源码之ClassReader、ClassVisitor、ClassWriter
+http://www.blogjava.net/DLevin/archive/2014/06/25/414292.html
+
+Java字节码操纵框架ASM快速入门
+https://blog.csdn.net/mn960mn/article/details/51418236
+
+官网
+https://asm.ow2.io/
+
+ASM系列
+http://yunshen0909.iteye.com/?page=2
+ASM Bytecode Framework探索与使用
+https://www.jianshu.com/p/760229bfe18a
+---------------------------------------------------------------------------CGLIB字节码框架-----------------------
+CGLIB学习笔记
+https://www.cnblogs.com/shijiaqi1066/p/3429691.html
+CGLIB包结构：----------------->
+net.sf.cglib.core    底层字节码处理类。
+net.sf.cglib.transform    该包中的类用于class文件运行时转换或编译时转换。
+net.sf.cglib.proxy    该包中的类用于创建代理和方法拦截。
+net.sf.cglib.reflect    该包中的类用于快速反射，并提供了C#风格的委托。
+net.sf.cglib.util    集合排序工具类。
+net.sf.cglib.beans    JavaBean工具类。
+
+CGLIB代理相关的类：----------------->
+net.sf.cglib.proxy.Enhancer    主要的增强类。
+net.sf.cglib.proxy.MethodInterceptor    主要的方法拦截类，它是Callback接口的子接口，需要用户实现。
+net.sf.cglib.proxy.MethodProxy    JDK的java.lang.reflect.Method类的代理类，可以方便的实现对源对象方法的调用。
+cglib是通过动态的生成一个子类去覆盖所要代理类的非final方法，并设置好callback，则原有类的每个方法调用就会转变成调用用户定义的拦截方法（interceptors）。
+
+CGLIB代理相关的常用API如下图所示：
+net.sf.cglib.proxy.Callback接口在CGLIB包中是一个重要的接口，所有被net.sf.cglib.proxy.Enhancer类调用的回调（callback）接口都要继承这个接口。
+net.sf.cglib.proxy.MethodInterceptor能够满足任何的拦截（interception ）需要。对有些情况下可能过度。为了简化和提高性能，CGLIB包提供了一些专门的回调（callback）类型：
+net.sf.cglib.proxy.FixedValue 为提高性能，FixedValue回调对强制某一特别方法返回固定值是有用的。
+net.sf.cglib.proxy.NoOp NoOp回调把对方法调用直接委派到这个方法在父类中的实现。
+net.sf.cglib.proxy.LazyLoader 当实际的对象需要延迟装载时，可以使用LazyLoader回调。一旦实际对象被装载，它将被每一个调用代理对象的方法使用。
+net.sf.cglib.proxy.Dispatcher Dispathcer回调和LazyLoader回调有相同的特点，不同的是，当代理方法被调用时，装载对象的方法也总要被调用。
+net.sf.cglib.proxy.ProxyRefDispatcher ProxyRefDispatcher回调和Dispatcher一样，不同的是，它可以把代理对象作为装载对象方法的一个参数传递。
+
+
+
+
+使用cglib可以实现动态代理，即使被代理的类没有实现接口，但被代理的类必须不是final类。
+https://www.cnblogs.com/best/p/5679656.html
+
+使用Cglib代码对类做代理/使用Cglib定义不同的拦截策略
+https://www.cnblogs.com/xrq730/p/6661692.html
+
+
+
+---------------------------------------------------------------------------javaassit字节码框架-----------------------
+
+类似字节码操作方法还有ASM。几种动态编程方法相比较，在性能上Javassist高于反射，但低于ASM，因为Javassist增加了一层抽象。在实现成本上Javassist和反射都很低，而ASM由于直接操作字节码，相比Javassist源码级别的api实现成本高很多。
+几个方法有自己的应用场景，比如Kryo使用的是ASM，追求性能的最大化。而NBeanCopyUtil采用的是Javassist，在对象拷贝的性能上也已经明显高于其他的库，并保持高易用性。
+实际项目中推荐先用Javassist实现原型，若在性能测试中发现Javassist成为了性能瓶颈，再考虑使用其他字节码操作方法做优化。
+Java动态编程初探——Javassist
+https://www.cnblogs.com/hucn/p/3636912.html
+
+利用instrument+Attach API+javassist动态改变方法逻辑
+https://blog.csdn.net/shuangyue/article/details/8575160
+
+
+
+
+
+
+---------------------------------------------------------------------------guice AOP-----------------------
+Guice启动的时候比Spring要快很多，据说要快100倍，这主要是因为Spring要去读配置文件，要Parse XML文件。
+但是个人感觉这种快，其实作用有限，因为这种速度的差异，只是在load Bean的时候，当Bean都已经被load到内存之后，其实就没什么差别了，所以Guice快只是快在启动阶段。
+
+史上最好用的依赖注入框架Google Guice
+https://baijiahao.baidu.com/s?id=1588240131494978979&wfr=spider&for=pc
+
+深入剖析Guice（Google依赖注入框架）
+https://blog.csdn.net/zhaowen25/article/details/52927193
+
+Guice：整个框架的门面
+Injector：一个依赖的管理上下文
+Binder：一个接口和实现的绑定
+Module：一组Binder
+Provider：bean的提供者
+Key：Binder中对应一个Provider
+Scope：Provider的作用域
+Stage：运行方式（为了不同的要求）
+
+
+
+
+
+
+
+

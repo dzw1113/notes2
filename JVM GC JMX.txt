@@ -1,0 +1,87 @@
+ClassLoadingMXBean	用于 Java 虚拟机的类加载系统的管理接口。
+CompilationMXBean	用于 Java 虚拟机的编译系统的管理接口。
+GarbageCollectorMXBean	用于 Java 虚拟机的垃圾回收的管理接口。
+MemoryManagerMXBean	内存管理器的管理接口。
+MemoryMXBean	Java 虚拟机的内存系统的管理接口。
+MemoryPoolMXBean	内存池的管理接口。
+OperatingSystemMXBean	用于操作系统的管理接口，Java 虚拟机在此操作系统上运行。
+RuntimeMXBean	Java 虚拟机的运行时系统的管理接口。
+ThreadMXBean	Java 虚拟机线程系统的管理接口。
+监视和管理 Java 虚拟机
+https://blog.csdn.net/fanxiaobin577328725/article/details/51707668
+
+
+
+
+【深入JAVA】Java中的CPU和系统负载监控——OperatingSystemMXBean--------->CPU的负载情况/系统的负载情况
+https://blog.csdn.net/u010515761/article/details/43225621
+
+接口 MemoryMXBean
+http://tool.oschina.net/uploads/apidocs/jdk-zh/java/lang/management/MemoryMXBean.html
+
+
+
+
+Serial,Parallel,CMS,G1四大GC收集器特点小结
+https://blog.csdn.net/u013812939/article/details/48782343
+JVM垃圾收集器－对比Serial、Parallel、CMS和G1
+https://blog.csdn.net/xzhthu2011/article/details/78601831
+
+JMX 和系统管理
+http://topmanopensource.iteye.com/blog/833386
+
+Java GC收集器配置说明
+https://www.cnblogs.com/parryyang/p/5750146.html
+
+Java虚拟机9：垃圾收集（GC）-4（垃圾收集器）
+https://www.cnblogs.com/haitaofeiyang/p/7811311.html
+
+jvm默认垃圾收集器789
+https://blog.csdn.net/luoliang1024/article/details/78984902
+
+
+JVM内存区域详解（Eden Space、Survivor Space、Old Gen、Code Cache和Perm Gen）
+https://blog.csdn.net/shiyong1949/article/details/52585256/
+
+深入理解元空间（Metaspace）
+https://www.cnblogs.com/dennyzhangdd/p/6770188.html#_label3
+
+java.lang.management  接口 ThreadMXBean
+https://www.cnblogs.com/wzhanke/p/4460891.html
+类 ThreadInfo
+http://www.cjsdn.net/Doc/JDK60/java/lang/management/ThreadInfo.html
+
+
+
+--------------------------------------------------------分割线-------------------NIO------------------------------------------------------------
+JVM的内存区域划分
+https://www.cnblogs.com/dolphin0520/p/3613043.html#2954451
+
+1.程序计数器
+
+程序计数器（Program Counter Register），也有称作为PC寄存器。想必学过汇编语言的朋友对程序计数器这个概念并不陌生，在汇编语言中，程序计数器是指CPU中的寄存器，它保存的是程序当前执行的指令的地址（也可以说保存下一条指令的所在存储单元的地址），当CPU需要执行指令时，需要从程序计数器中得到当前需要执行的指令所在存储单元的地址，然后根据得到的地址获取到指令，在得到指令之后，程序计数器便自动加1或者根据转移指针得到下一条指令的地址，如此循环，直至执行完所有的指令。
+  虽然JVM中的程序计数器并不像汇编语言中的程序计数器一样是物理概念上的CPU寄存器，但是JVM中的程序计数器的功能跟汇编语言中的程序计数器的功能在逻辑上是等同的，也就是说是用来指示 执行哪条指令的。
+
+JVM指令集
+https://blog.csdn.net/qq_26770963/article/details/85220579
+
+
+2.Java栈
+
+https://blog.csdn.net/m0_38090156/article/details/79468268
+
+Java栈中存放的是一个个的栈帧，每个栈帧对应一个被调用的方法，在栈帧中包括：
+ 局部变量表(Local Variables)、
+ 操作数栈(Operand Stack)、
+ 指向当前方法所属的类的运行时常量池（运行时常量池的概念在方法区部分会谈到）的引用(Reference to runtime constant pool)、
+ 方法返回地址(Return Address)和一些额外的附加信息。
+ 
+当线程执行一个方法时，就会随之创建一个对应的栈帧，并将建立的栈帧压栈。当方法执行完毕之后，便会将栈帧出栈。因此可知，线程当前执行的方法所对应的栈帧必定位于Java栈的顶部。对于所有的程序设计语言来说，栈这部分空间对程序员来说是不透明的。
+
+栈内存的大小可以有两种设置，固定值和根据线程需要动态增长。 
+在JVM栈这个数据区可能会发生抛出两种错误。 
+1. StackOverflowError 出现在栈内存设置成固定值的时候，当程序执行需要的栈内存超过设定的固定值会抛出这个错误。 
+2. OutOfMemoryError 出现在栈内存设置成动态增长的时候，当JVM尝试申请的内存大小超过了其可用内存时会抛出这个错误。
+
+
+

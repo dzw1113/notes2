@@ -1,0 +1,77 @@
+ContextLoaderListener和Spring MVC中的DispatcherServlet加载内容的区别
+https://blog.csdn.net/py_xin/article/details/52052627
+
+ContextLoaderListener和DispatcherServlet都会在Web容器启动的时候加载一下bean配置. 区别在于:
+DispatcherServlet一般会加载MVC相关的bean配置管理(如: ViewResolver, Controller, MultipartResolver, ExceptionHandler, etc.)
+ContextLoaderListener一般会加载整个Spring容器相关的bean配置管理(如: Log, Service, Dao, PropertiesLoader, DataSource Bean, etc.)
+
+----------------------------**************----------分界线----------******************************-------------------
+
+Spring之ContextLoaderListener的作用
+https://www.cnblogs.com/hello-yao-ge/p/5891435.html
+
+ContextLoaderListener因为它实现了ServletContextListener这个接口，在web.xml配置这个监听器，启动容器时，就会默认执行它实现的方法。在ContextLoaderListener中关联了ContextLoader这个类，所以整个加载配置过程由ContextLoader来完成。
+
+
+第一段，说明ContextLoader可以由 ContextLoaderListener和ContextLoaderServlet生成。如果查看ContextLoaderServlet的API，可以看到它也关联了ContextLoader这个类而且它继承了HttpServlet类
+第二段，ContextLoader创建的是 XmlWebApplicationContext这样一个类，它实现的接口是WebApplicationContext->ConfigurableWebApplicationContext->ApplicationContext->BeanFactory,这样一来spring中的所有bean都由这个类来创建
+第三段，讲如何部署applicationContext的xml文件，如果在web.xml中不写任何参数配置信息，默认的路径是"/WEB-INF/applicationContext.xml，在WEB-INF目录下创建的xml文件的名称必须是applicationContext.xml。
+如果是要自定义文件名可以在web.xml里加入contextConfigLocation这个context参数：
+<context-param>
+<param-name>contextConfigLocation</param-name>
+<param-value>
+/WEB-INF/classes/applicationContext-*.xml
+</param-value>
+</context-param>
+在<param-value> </param-value>里指定相应的xml文件名，如果有多个xml文件，可以写在一起并一“,”号分隔。上面的applicationContext-*.xml采用通配符，
+比如这那个目录下有applicationContext-ibatis-base.xml，applicationContext-action.xml，applicationContext-ibatis-dao.xml等文件，都会一同被载入。
+
+----------------------------**************----------分界线----------******************************-------------------
+
+参考：
+Spring源码解读：ContextLoader类
+https://blog.csdn.net/chenpeng19910926/article/details/71195202/
+Spring AbstractApplicationContext抽象类的refresh()方法--笔记
+https://www.cnblogs.com/GooPolaris/p/8184429.html
+Spring探秘|妙用BeanPostProcessor
+https://www.jianshu.com/p/1417eefd2ab1
+Spring中BeanPostProcessor与InitializingBean接口的关系与应用
+https://blog.csdn.net/dreamwbt/article/details/73648434
+Spring Aware容器感知技术
+https://baijiahao.baidu.com/s?id=1578379239498955631&wfr=spider&for=pc
+发布事件者-->同步--->AbstractApplicationContext.publishEvent----------->ApplicationEventPublisher-------->具体实现--------->ApplicationEvent 与 ApplicationListener 的使用 及 思考
+https://blog.csdn.net/qq1013598664/article/details/53539909
+
+bean创建方式
+https://www.cnblogs.com/LiuChunfu/p/5574383.html
+
+
+PostProcessorRegistrationDelegate----------------->Spring点滴十一：Spring中BeanFactoryPostProcessor和BeanPostProcessor区别
+https://www.cnblogs.com/sishang/p/6588542.html
+spring中MessageSource的配置使用方法3--ResourceBundleMessageSource
+https://blog.csdn.net/qyf_5445/article/details/8124431
+详解Spring事件驱动模型
+http://jinnianshilongnian.iteye.com/blog/1902886
+
+-----------以下是debug情况，反过来看-----------------------------
+loadBeanDefinitions:123, XmlWebApplicationContext (org.springframework.web.context.support)----->读取bean xml
+loadBeanDefinitions:94, XmlWebApplicationContext (org.springframework.web.context.support)----->加载BeanDefinition:(new XmlBeanDefinitionReader(beanFactory)：创建解析xml bean解析器,默认是：XmlBeanDefinitionReader，使用context's定义解析bean，指定资源加载情况)
+refreshBeanFactory:129, AbstractRefreshableApplicationContext (org.springframework.context.support)----->真正的刷新bean工厂:(hasBeanFactory:如果已经存在一个bean工厂那么就将其销毁，关闭。)，
+																										(createBeanFactory:新建bean工厂,默认是：DefaultListableBeanFactory)，
+																										(customizeBeanFactory:自定义bean工厂)
+																										(loadBeanDefinitions:加载BeanDefinition)
+																										
+obtainFreshBeanFactory:613, AbstractApplicationContext (org.springframework.context.support)----->告诉子类刷新内部bean工厂
+refresh:514, AbstractApplicationContext (org.springframework.context.support)------->prePareRefresh:预刷新(设置启动时间。context状态。initPropertySources：初始化context environment（上下文环境）中的占位符属性来源。验证所有必需的属性)
+																					 obtainFreshBeanFactory ：告诉子类刷新内部bean工厂
+																					 prepareBeanFactory：准备配置这个工厂的标准环境，比如context的类加载器和后处理器。包括：添加一堆BeanPostProcessor（初始化bean构造函数前后调用），添加一堆的Aware（感知器），添加了ApplicationEventPublisher（传播器spring4.2才有的）
+																					 postProcessBeanFactory(AbstractRefreshableWebApplicationContext):bean工厂进行了许多配置，现在需要对bean工厂进行一些处理
+																					 invokeBeanFactoryPostProcessors(PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors())来完成): 调用所有的bean工厂处理器（BeanFactoryPostProcessor）对bean工厂进行一些处理
+																					 registerBeanPostProcessors（PostProcessorRegistrationDelegate来完成）:注册BeanPostProcessors
+																					 initMessageSource：初始化MessageSource接口的一个实现类。这个接口提供了消息处理功能。主要用于国际化/i18n
+																					 initApplicationEventMulticaster：为这个context初始化一个事件广播器（ApplicationEventMulticaster）。
+																					 
+																					 
+configureAndRefreshWebApplicationContext:443, ContextLoader (org.springframework.web.context)------>配置以下信息：设置contextId，默认是：org.springframework.web.context.WebApplicationContext:/  ,设置：configLocationParam，默认读取web.xml里的，刷新：wac.refresh();
+initWebApplicationContext:325, ContextLoader (org.springframework.web.context)-------->真正的初始化，初始化WebApplicationContext（实现类：CONTEXT_CLASS_PARAM=org.springframework.web.context.support.XmlWebApplicationContext）
+contextInitialized:107, ContextLoaderListener (org.springframework.web.context)--------->调用ContextLoader初始化

@@ -1,0 +1,29 @@
+文件描述符 2>&1
+https://blog.csdn.net/closer_sama/article/details/51453592
+
+
+文件描述符与流的区别
+https://blog.csdn.net/shangtang1/article/details/78665018
+
+文件句柄（file handles） & 文件描述符（file descriptors）
+https://blog.csdn.net/u013256816/article/details/60778709
+文件句柄也称为文件指针(FILE *)：C语言中使用文件指针做为I/O的句柄。文件指针指向进程用户区中的一个被称为FILE结构的数据结构。FILE结构包括一个缓冲区和一个文件描述符。而文件描述符是文件描述符表的一个索引，因此从某种意义上说文件指针就是句柄的句柄（在Windows系统上，文件描述符被称作文件句柄）。
+
+文件句柄、文件描述符与进程和多线程的那些事
+https://www.cnblogs.com/ChunJian-YANG/p/5322041.html
+
+深入理解socket编程的几个函数和两种fd	
+https://blog.csdn.net/mijichui2153/article/details/80969404
+
+
+https://www.cnblogs.com/plxx/p/5322635.html
+打开文件或者socket之后给你一个fd，然后你可以拿着fd去操作文件或者socket，也可以把这个fd做为参数传来传去。你不能把文件或者socket“本身”作为一个参数传给一个函数吧，传fd就可以，因为它就是一个类似指针的东西。
+函数里面就根据这个fd对这同一个文件或者已经建立的socket连接进行操作。
+之所以socket和文件都有fd的原因是都可以在上面做打开，关闭，读，写等等操作。
+
+JDK 源码阅读 : FileDescriptor
+http://www.importnew.com/28981.html
+
+
+FileDescriptor文件描述符 标准输入输出错误 文件描述符
+https://www.cnblogs.com/noteless/p/9605778.html

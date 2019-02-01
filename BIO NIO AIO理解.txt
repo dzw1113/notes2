@@ -1,0 +1,170 @@
+结合【wireshark抓包记录.txt】【五种IO模型理解】看
+--------------------------------------------------------分割线-------------------------------------------------------------------------------	
+TCP网络编程中connect() 、listen() 和accept()三者之间关系	
+https://www.cnblogs.com/woainifanfan/p/6950433.html	
+TCP网络编程开发分为服务器端和客户端两个部分 
+
+对于服务器端开发主要流程--类似于 接电话过程
+
+socket()[找到一个可以通话的手机]----->bind()[插入一个固定号码]------>listen()-------> accept------->recv()------->send()------>close();
+
+对于客户端开发主要流程----类似于打电话过程
+
+socket()----->connect()------>recv/read/send------>close()
+
+对于TCP协议 =建立连接就在客户端connect（）与服务器listen之间 建立TCP连接（三次握手） 
+
+1.Connect（）函数：是一个阻塞函数 通过TCp三次握手父服务器建立连接
+2.服务器端的listen() 函数：不是一个阻塞函数： 功能：将套接字 和 套接字对应队列的长度告诉Linux内核
+3.accept() 函数 阻塞：从处于established 状态的队列中取出完成的连接 当队列中没有完成连接时候 会形成阻塞，直到取出队列中已完成连接的用户连接为止。
+	
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+Java 网络IO编程总结（BIO、NIO、AIO均含完整实例代码）
+https://blog.csdn.net/anxpp/article/details/51512200	
+https://blog.csdn.net/qq_30040421/article/details/75009328	
+
+https://blog.csdn.net/u012250875/article/details/78341874
+发展历程：bio(jdk1.0) -> nio(jdk1.4) -> aio(jdk1.7)
+
+bio：b有两说，一为base，jdk中最早抽象出的io体系；一为block，jdk 1.0 中的io体系是阻塞的。所以两说皆有道理，一般我们认为b取block之意 
+nio：n也有两说，一为new，针对base而言；一为non-block，针对block而言。 
+aio：a为asynchronous，异步的，异步io，aio还有个名字叫：nio2
+
+
+--------------------------------------------------------分割线-------------------IO------------------------------------------------------------
+Java IO 学习（三）缓冲IO / 直接IO / 内存映射
+https://www.cnblogs.com/stevenczp/p/7496089.html
+
+缓冲IO的工作流程：
+1. 用户调用read方法
+2. 调用系统调用，触发中断，进程从用户态进入内核态
+3. 从硬盘中读取数据并复制到kernel缓冲区
+4. 将数据从kernel缓存区复制到用户提供的byte数组中
+5. 进程从内核态返回到用户态
+完成
+从上面的流程中我们可以看到，调用一次read方法，最多可能会引起两次用户态与内核态之间的切换，以及两次数据复制
+
+
+内存映射的工作流程：
+1. 用户试图访问ptr指向的数据
+2. MMU解析失败，触发缺页中断，程序从用户态进入到内核态
+3. 从硬盘中读取数据并复制到进程空间中ptr指向的逻辑空间里
+4. 进程从内核态返回到用户态
+完成
+可以看出，试图访问内存映射文件，最多可能会引起两次用户态与内核态之间的切换，以及一次数据复制
+也就是说，内存映射与缓冲IO相比，可以节省数据复制带来的开销，因此效率较高。
+
+
+java.IO层次体系结构
+https://www.cnblogs.com/yyy-blog/p/7003693.html
+
+字节流：InputStream/OutputStream
+字符流：Writer/Reader
+非流：File/RandomAccessFile
+其他：SerializablePermission/FileSystem/Win32FileSystem
+
+BIO引进了：MappedByteBuffer
+
+Java BIO学习总结
+https://blog.csdn.net/liupeng_qwert/article/details/74923587
+
+字符流的由来： 因为数据编码的不同，而有了对字符进行高效操作的流对象。本质其实就是基于字节流读取时，去查了指定的码表。 
+字节流和字符流的区别： 
+读写单位不同：字节流以字节（8bit）为单位，字符流以字符为单位，根据码表映射字符，一次可能读多个字节。 
+处理对象不同：字节流能处理所有类型的数据（如图片、avi等），而字符流只能处理字符类型的数据。 
+结论：只要是处理纯文本数据，就优先考虑使用字符流。 除此之外都使用字节流。
+
+
+--------------------------------------------------------分割线-------------------BIO------------------------------------------------------------
+Socket通信原理
+https://www.cnblogs.com/wangcq/p/3520400.html
+
+Socket是什么呢？
+    Socket是应用层与TCP/IP协议族通信的中间软件抽象层，它是一组接口。在设计模式中，Socket其实就是一个门面模式，它把复杂的TCP/IP协议族隐藏在Socket接口后面，对用户来说，一组简单的接口就是全部，让Socket去组织数据，以符合指定的协议。	   
+ServerSocket:bind/listen/accept/write/read/close
+Socket:connect/write/read/close
+
+--------------------------------------------------------分割线-------------------NIO------------------------------------------------------------
+Java NIO 教程
+https://www.jianshu.com/p/f22fa0199f91
+
+为什么Netty使用NIO而不是AIO？
+https://blog.csdn.net/yangguosb/article/details/80053731
+原因：在Linux系统上，AIO的底层实现仍使用EPOLL，与NIO相同，因此在性能上没有明显的优势；Windows的AIO底层实现良好，但是Netty开发人员并没有把Windows作为主要使用平台考虑。
+官方解释：https://github.com/netty/netty/issues/2515
+
+
+Java NIO Selector选择器
+https://www.cnblogs.com/zqyanywn/p/7865889.html
+用单线程处理多个channels的好处是我需要更少的线程来处理channel。实际上，你甚至可以用一个线程来处理所有的channels。从操作系统的角度来看，切换线程开销是比较昂贵的，并且每个线程都需要占用系统资源，因此暂用线程越少越好
+
+java NIO 的通道Channel的理解
+https://blog.csdn.net/qq_27092581/article/details/78347198
+打个比喻：山西有煤，我们想要，于是乎建了一条铁路连通到山西，这条铁路就是这里的"Channel",那么煤通过什么运过来呢？
+铁路建好了，就差火车了，因此这里的火车就像是缓冲区，火车把山西的煤运到这边来，把我们这里的钱运过去，这样双向传输就愉快的完成了。
+
+通道主要用于传输数据，从缓冲区的一侧传到另一侧的实体（如文件、套接字...），反之亦然；
+
+NIO学习笔记——通道（channel）详解
+https://blog.csdn.net/fuyuwei2015/article/details/73698417 
+通道将数据传输给 ByteBuffer 对象或者从 ByteBuffer 对象获取数据进行传输 
+通道可以是单向（ unidirectional）或者双向的（ bidirectional）。
+一个 channel 类可能实现定义read( )方法的 ReadableByteChannel 接口，而另一个 channel 类也许实现 WritableByteChannel 接口以提供 write( )方法。实现这两种接口其中之一的类都是单向的，只能在一个方向上传输数据。如果一个类同时实现这两个接口，那么它是双向的，可以双向传输数据。
+
+分散读和聚集写通道：ScatteringByteChannel和GatheringByteChannel，对应了ReadableByteChannel和 WritableByteChannel接口
+
+
+NIO源码理解
+https://donald-draper.iteye.com/category/358718
+
+ByteBuffer常用方法详解
+https://www.cnblogs.com/JAYIT/p/8384476.html
+
+Java NIO之Selector类与SelectableChannel类
+https://blog.csdn.net/coder_py/article/details/69257783
+
+Selector：一般称 为选择器 ，当然你也可以翻译为 多路复用器。它是Java NIO核心组件中的一个，用于检查一个或多个NIO Channel（通道）的状态是否处于可读、可写。如此可以实现单线程管理多个channels,也就是可以管理多个网络链接。
+FileChannel:用于读取、写入、映射和操作文件的通道。（不适用Selector，因为FileChannel不能切换为非阻塞模式）
+DatagramChannel:通过UDP读写网络中的数据通道。
+SocketChannel:通过tcp读写网络中的数据。
+ServerSocketChannel:可以监听新进来的tcp连接，对每一个连接都创建一个SocketChannel。
+
+Java NIO之Selector（选择器）-------------源码介绍
+https://www.cnblogs.com/snailclimb/p/9086334.html
+SelectionKey.OP_CONNECT
+SelectionKey.OP_ACCEPT
+SelectionKey.OP_READ
+SelectionKey.OP_WRITE
+
+基于 Java NIO 实现简单的 HTTP 服务器
+http://www.tianxiaobo.com/2018/04/04/%E5%9F%BA%E4%BA%8E-Java-NIO-%E5%AE%9E%E7%8E%B0%E7%AE%80%E5%8D%95%E7%9A%84-HTTP-%E6%9C%8D%E5%8A%A1%E5%99%A8/
+
+
+Direct Buffer--堆外内存
+https://zhuanlan.zhihu.com/p/27625923
+
+HeapByteBuffer与DirectByteBuffer的区别
+https://www.zhihu.com/question/60892134/answer/191267896
+
+HeapByteBuffer，顾名思义，是写在jvm堆上面的一个buffer，底层的本质是一个数组，用类封装维护了很多的索引（limit/position/capacity等）
+DirectByteBuffer，底层的数据其实是维护在操作系统的内存中，而不是jvm里，DirectByteBuffer里维护了一个引用address指向了数据，从而操作数据
+
+HeapByteBuffer优点：由于内容维护在jvm里，所以把内容写进buffer里速度会快些；并且，可以更容易回收
+DirectByteBuffer优点：跟外设（IO设备）打交道时会快很多，因为外设读取jvm堆里的数据时，不是直接读取的，而是把jvm里的数据读到一个内存块里，再在这个块里读取的，如果使用DirectByteBuffer，则可以省去这一步，实现zero copy（零拷贝）
+
+
+
+https://blog.csdn.net/bpz31456/article/details/82255985
+
+錯誤：Size exceeds Integer.MAX_VALUE
+MappedByteBuffer处理大文件，一次只能读2G内容到内存中，为了读取大文件，需要循环读取处理。
+
+NIO优势？堆内存？直接内存？映射文件？Transfer to？
+https://www.jianshu.com/p/c81f8a93d42f
+
+--------------------------------------------------------分割线-------------------AIO------------------------------------------------------------
+java中的AIO
+https://blog.csdn.net/moakun/article/details/81042877
+AsynchronousFileChannel: 用于文件异步读写；
+AsynchronousSocketChannel: 客户端异步socket；
+AsynchronousServerSocketChannel: 服务器异步socket。

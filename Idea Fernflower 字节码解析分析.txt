@@ -1,0 +1,126 @@
+
+程序入口：
+ConsoleDecompiler
+	class解析入参：new String[]{"D:\\wk\\hd\\cheetah-service\\target\\classes\\com\\xtt\\txgl\\nurse\\service\\impl\\DrugServiceImpl.class","d:\\out"};
+	main		
+		初始化反编译类，入参：解析文件，解析参数，日志
+		ConsoleDecompiler decompiler = new ConsoleDecompiler(destination, mapOptions, logger);
+			root = destination;
+			engine = new Fernflower(this, this, options, logger);
+				初始化结构化上下文
+				structContext = new StructContext(saver, this, new LazyLoader(provider));
+				初始化class处理类
+				classProcessor = new ClassesProcessor(structContext);
+				常量池拦截器
+				interceptor = new PoolInterceptor();
+				标识符转换器
+				converter = new IdentifierConverter(structContext, helper, interceptor);
+				反编译上下文
+				DecompilerContext context = new DecompilerContext(properties, logger, structContext, classProcessor, interceptor);
+				DecompilerContext.setCurrentContext(context);
+		添加来源文件
+		decompiler.addSource(source);  
+			Fernflower.addSource
+			StructContext.addSpace("", file, isOwn, 0);
+				创建上下文单位
+				ContextUnit unit = units.get(path);
+				unit = new ContextUnit(ContextUnit.TYPE_FOLDER, null, path, isOwn, saver, decompiledData);
+				units.put(path, unit);
+		
+				加载流文件，转换成StructClass对象
+				DataInputFullStream in = loader.getClassStream(file.getAbsolutePath(), null)
+					根据文件路径加载流
+					LazyLoader.getClassStream()
+						ConsoleDecompiler.getBytecode
+							InterpreterUtil.getBytes(file);
+						new DataInputFullStream(bytes);
+				StructClass cl = new StructClass(in, isOwn, loader);  
+					解析输入流
+					minorVersion/majorVersion/ConstantPool/accessFlags
+				
+					解析接口
+					interfaces[i] = in.readUnsignedShort();
+					interfaceNames[i] = pool.getPrimitiveConstant(interfaces[i]).getString();
+					
+					解析字段
+					StructField field = new StructField(in, this);
+					fields.addWithKey(field, InterpreterUtil.makeUniqueKey(field.getName(), field.getDescriptor()));
+					
+					解析方法
+					StructMethod method = new StructMethod(in, this);
+					methods.addWithKey(method, InterpreterUtil.makeUniqueKey(method.getName(), method.getDescriptor()));
+					
+					解析参数
+					attributes = readAttributes(in, pool);
+					
+					释放资源
+					releaseResources();
+				classes.put(cl.qualifiedName, cl);
+				把class存入计入上下文
+				unit.addClass(cl, filename);
+				loader.addClassLink(cl.qualifiedName, new LazyLoader.Link(file.getAbsolutePath(), null));	
+		根据上下文反编译
+		decompiler.decompileContext();
+			Fernflower.decompileContext();
+				加载class信息
+				ClassesProcessor.loadClasses(helper); 
+					创建class节点
+					for (StructClass cl : context.getClasses().values()) {
+						检索是否内部类（lambda也算内部类）
+						StructInnerClassesAttribute inner = cl.getAttribute(StructGeneralAttribute.ATTRIBUTE_INNER_CLASSES);
+					封装cl到class节点中	
+					ClassNode node = new ClassNode(ClassNode.CLASS_ROOT, cl);
+					node.access = cl.getAccessFlags();
+					mapRootClasses.put(cl.qualifiedName, node);	
+					连接嵌套class？？？没懂
+					for (Entry<String, ClassNode> ent : mapRootClasses.entrySet()) {
+				StructContext.saveContext();
+					ContextUnit.save();
+						创建文件夹(IResultSaver/ConsoleDecompiler)
+						resultSaver.saveFolder(filename);
+						
+						复制非class文件
+						for (String[] pair : otherEntries) {
+						
+						获取编译后的源码,保存源码文件
+						String content = decompiledData.getClassContent(cl);
+							根据class反编译源码
+							classProcessor.writeClass(cl, buffer);
+								导入包收集器
+								ImportCollector importCollector = new ImportCollector(root);
+								DecompilerContext.startClass(importCollector);
+	  
+								lambda解析器
+								new LambdaProcessor().processClass(root);
+								
+								在隐式导入中添加简单类名
+								addClassnameToImport(root, importCollector);
+								
+								为所有嵌套类构建包装（实际处理的地方）
+								initWrappers(root);
+								
+								嵌套类解析器
+								new NestedClassProcessor().processClass(root, root);
+								
+								嵌套成员访问
+								new NestedMemberAccess().propagateMemberAccess(root);
+							
+								class转java
+								new ClassWriter().classToJava(root, classBuffer, 0, null);
+								
+								编写包名
+								int import_lines_written = importCollector.writeImports(buffer);
+								
+								清空内存
+								destroyWrappers(root);
+								DecompilerContext.getLogger().endReadingClass();
+						if (content != null) {
+						  int[] mapping = null;
+						  if (DecompilerContext.getOption(IFernflowerPreferences.BYTECODE_SOURCE_MAPPING)) {//没看懂
+							mapping = DecompilerContext.getBytecodeSourceMapper().getOriginalLinesMapping();
+						  }
+						  resultSaver.saveClassFile(filename, cl.qualifiedName, entryName, content, mapping);
+						}
+			释放上下文
+			Fernflower.clearContext();
+	

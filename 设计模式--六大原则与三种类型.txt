@@ -1,0 +1,7 @@
+五大创建型模式：工厂方法（factory method），抽象工厂（abstract factory），单例（singlton），建造者（builder），原型（Prototype）。
+七大结构型模式：适配器（adapter），装饰器（decorator），代理（proxy），门面（facade），享元（flyweight），桥接（bridge），组合（composite）。
+十一行为型模式：
+  父子类：策略（strategy），模板方法（template method）
+  两个类：观察者（observer），迭代器（iterator），责任链（chain of responsibility），命令（command）
+  类状态：状态（state），备忘录（memento），访问者（visitor）
+  中间类：中介者（mediator），解释器（interpreter）

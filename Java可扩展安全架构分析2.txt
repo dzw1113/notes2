@@ -1,0 +1,52 @@
+【Java安全技术探索之路系列：Java可扩展安全架构】
+https://blog.csdn.net/allenwells/article/details/46473261
+
+JCA:Java加密架构（Java Cryptograp Architecture）：提供基本的加密服务和加密算法，包括对数字签名和消息摘要的支持。
+JCE:Java加密扩展（Java Cryptographic Extension）：采用遵循美国出口控制条例的加密服务来增强JCA功能，同时支持加密、解密操作，支持密钥的生成和协商以及支持消息验证码算法（Message Authentication Code）。
+JCP:Java证书路径（Java Certification Path）：提供检查、验证和确认证书链真实性的功能。
+JSSE:Java安全套接字扩展（Java Secure Socket Extension）：通过使用SSL/TLC协议来保护数据交换的完整性和机密性，以实现安全通信。
+JAAS:Java认证和授权服务（Java Authentication and Authorization Service）：验证用户或设备的身份以确定其真实性和可信度，然后根据其身份提供访问权限，它有助于采用可插入的认证机制和基于用户的授权。
+JGSS:Java通用安全服务（Java Generic Secure Services API）：提供了使用统一的API开发应用的功能，式应用可以支持各种认证机制并有利于单点登录。
+
+数字签名---------原理及其应用:签名的作用无非就是证明某个文件上的内容确实是我写的/我认同的，别人不能冒充我的签名（不可伪造），我也不能否认上面的签名是我的（不可抵赖）
+https://blog.csdn.net/qmickecs/article/details/73696954
+
+消息摘要：一个消息摘要就是一个数据块的数字指纹。即对一个任意长度的一个数据块进行计算，产生一个唯一指印（对于SHA1是产生一个20字节的二进制数组）。
+			消息摘要主要用于验证数据的完整性，我们经常听到的校验和就是消息摘要的一个特例。
+https://blog.csdn.net/lengyue_wy/article/details/6749128
+
+数字签名和数字证书的区别
+https://www.wosign.com/news/news_2018101101.htm		
+https://blog.csdn.net/oscar999/article/details/9364101	
+
+
+Bouncy Castle Crypto的Java API
+http://www.bouncycastle.org/java.html
+https://github.com/bcgit/bc-java
+
+
+
+凯撒密码作为一种最为古老的对称加密体制，在古罗马的时候都已经很流行，
+他的基本思想是:通过把字母移动一定的位数来实现加密和解密。明文中的所有字母都在字母表上向后(或向前)按照一个固定数目进行偏移后被替换成密文。
+例如，当偏移量是3的时候，所有的字母A将被替换成D，B变成E，以此类推X将变成A，Y变成B，Z变成C。由此可见，位数就是凯撒密码加密和解密的密钥。
+
+JCE是JCA（Java Cryptography Architecture）的一种扩展。
+JCE/Java Cryptography Extension
+JDK/jce.jar:JCE的API都在javax.crypto包下，核心功能包括：加解密、密钥生成（对称）、MAC生成、密钥协商
+
+	
+
+
+java加密算法之AES小记	
+https://blog.csdn.net/u013749540/article/details/70228033	
+
+JAVA RSA非对称加密详解
+https://www.cnblogs.com/frank-quan/p/7073457.html
+
+
+
+
+
+
+
+

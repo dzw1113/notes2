@@ -1,0 +1,456 @@
+
+Wireshark入门与进阶系列一之基本使用
+https://blog.csdn.net/qq_29277155/article/details/52059123
+
+
+--------------------- 
+作者：adamin90 
+来源：CSDN 
+原文：https://blog.csdn.net/adamlovejw/article/details/47006157 
+版权声明：本文为博主原创文章，转载请附上博文链接！
+
+Wireshark 抓包 过滤规则大全
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+http.host==6san.com
+http.host contains 6san.com
+//过滤经过指定域名的http数据包，这里的host值不一定是请求中的域名
+http.response.code==302
+//过滤http响应状态码为302的数据包
+http.response==1
+//过滤所有的http响应包
+http.request==1
+//过滤所有的http请求，貌似也可以使用http.request
+http.request.method==POST
+//wireshark过滤所有请求方式为POST的http请求包，注意POST为大写
+http.cookie contains guid
+//过滤含有指定cookie的http数据包
+http.request.uri==”/online/setpoint”
+//过滤请求的uri，取值是域名后的部分
+http.request.full_uri==” http://task.browser.360.cn/online/setpoint”
+//过滤含域名的整个url则需要使用http.request.full_uri
+http.server contains “nginx”
+//过滤http头中server字段含有nginx字符的数据包
+http.content_type == “text/html”
+//过滤content_type是text/html的http响应、post包，即根据文件类型过滤http数据包
+http.content_encoding == “gzip”
+//过滤content_encoding是gzip的http包
+http.transfer_encoding == “chunked”
+//根据transfer_encoding过滤
+http.content_length == 279
+http.content_length_header == “279”
+//根据content_length的数值过滤
+http.server
+//过滤所有含有http头中含有server字段的数据包
+http.request.version == “HTTP/1.1″
+//过滤HTTP/1.1版本的http包，包括请求和响应
+http.response.phrase == “OK”
+//过滤http响应中的phrase**
+
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+1.过滤IP，如来源IP或者目标IP等于某个IP
+
+例子:
+ip.src eq 192.168.1.104 or ip.dst eq 192.168.1.104
+或者
+ip.addr eq 192.168.1.107 // 都能显示来源IP和目标IP
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+2.过滤端口
+
+例子:
+tcp.port eq 80 // 不管端口是来源的还是目标的都显示
+tcp.port == 80
+tcp.port eq 2722
+tcp.port eq 80 or udp.port eq 80
+tcp.dstport == 80 // 只显tcp协议的目标端口80
+tcp.srcport == 80 // 只显tcp协议的来源端口80
+
+udp.port eq 15000
+
+过滤端口范围
+tcp.port >= 1 and tcp.port <= 80
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+3.过滤协议
+
+例子:
+tcp
+udp
+arp
+icmp
+http
+smtp
+ftp
+dns
+msnms
+ip
+ssl
+oicq
+bootp
+等 等
+
+排除arp包，如!arp  或者  not arp
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+4.过滤MAC
+
+太以网头
+过滤
+
+eth.dst == A0:00:00:04:C5:84 //
+过滤
+目 标mac
+eth.src eq A0:00:00:04:C5:84 //
+过 滤
+来源mac
+eth.dst==A0:00:00:04:C5:84
+eth.dst==A0-00-00-04-C5-84
+eth.addr eq A0:00:00:04:C5:84 //
+过滤
+来 源MAC和目标MAC都等于A0:00:00:04:C5:84的
+
+less than 小于 < lt
+小于等于 le
+
+等 于 eq
+
+大于 gt
+大于等于 ge
+
+不等 ne
+
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+5.包长度过滤
+
+
+例子:
+udp.length == 26 这个长度是指udp本身固定长度8加上udp下面那块数据包之和
+tcp.len >= 7  指的是ip数据包(tcp下面那块数据),不包括tcp本身
+ip.len == 94 除了以太网头固定长度14,其它都算是ip.len,即从ip本身到最后
+frame.len == 119 整个数据包长度,从eth开始到最后
+
+eth ---> ip or arp ---> tcp or udp ---> da
+ta
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+6.http模式过滤
+
+例子:
+http.request.method == "GET"
+http.request.method == "POST"
+http.request.uri == "/img/logo-edu.gif"
+http contains "GET"
+http contains "HTTP/1."
+
+// GET包
+http.request.method == "GET" && http contains "Host: "
+http.request.method == "GET" && http contains "User-Agent: "
+// POST包
+http.request.method == "POST" && http contains "Host: "
+http.request.method == "POST" && http contains "User-Agent: "
+// 响应包
+http contains "HTTP/1.1 200 OK" && http contains "Content-Type: "
+http contains "HTTP/1.0 200 OK" && http contains "Content-Type: "
+一 定包含如下
+Content-Type:
+
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+7.TCP参数过滤
+
+
+tcp.flags 显示包含TCP标志的封包。
+tcp.flags.syn == 0x02    显示包含TCP SYN标志的封包。
+tcp.window_size == 0 && tcp.flags.reset != 1
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+8.过滤内容
+
+
+tcp[20] 表示从20开始，取1个字符
+tcp[20:]表示从20开始，取1个字符以上
+tcp[20:8]表示从20开始，取8个字符
+tcp[offset,n]
+
+udp[8:3]==81:60:03 // 偏移8个bytes,再取3个数，是否与==后面的数据相等？
+udp[8:1]==32  如果我猜的没有错的话，应该是udp[offset:截取个数]=nValue
+eth.addr[0:3]==00:06:5B
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+
+Wireshark抓包工具使用以及数据包分析
+https://blog.csdn.net/qicheng777/article/details/74452136
+
+使用Python进行TCP数据包注入（伪造）
+http://www.cnblogs.com/kuzhon/articles/5627980.html
+
+点击某个包，可以查看具体内容，差不多刚好对于五层协议：
+	Frame：物理层的数据帧概况。
+	Ethernet II：数据链路层以太网帧头部信息。
+	Internet Protocol Version 4：互联网层IP包头部信息。
+	Transmission Control Protocol：传输层的数据段头部信息，此处是TCP协议。 
+	User Datagram Protocol：UDP协议
+	Hypertext Transfer Protocol：应用层的信息，此处是HTTP协议。
+	
+一、各层分析：
+将上诉Frame ，Ethernet || 等展开可看到具体传输信息：
+1、物理层Frame	------------------------------------------------------------封装类型/帧大小/协议层次...
+	-Frame 5: 66 bytes on wire (528 bits), 66 bytes captured(捕获) (528 bits) on interface 0   //5号帧，对方发送66字节，实际收到66字节
+
+	-Interface id: 0 (\Device\NPF_{37239901-4A63-419C-9693-97957A8232CD})     //接口id为0 
+
+	-Encapsulation type: Ethernet (1)  //封装类型
+
+	-Arrival Time: Jul  5, 2017 15:14:31.865685000 //捕获日期和时间（中国标准时间）
+
+	-[Time shift for this packet: 0.000000000 seconds]
+	-Epoch Time: 1499238871.865685000 seconds
+	-[Time delta from previous captured frame: 0.006861000 seconds]  //与前一包时间间隔
+	-[Time delta from previous displayed frame: 0.006861000 seconds]
+	-[Time since reference or first frame: 0.613985000 seconds] //#此包与第一帧的时间间隔
+
+	-Frame Number: 5                      //帧序号
+	-Frame Length: 66 bytes (528 bits)    //帧长度
+	-Capture Length: 66 bytes (528 bits)  //捕获字节长度 
+	-[Frame is marked: False]             //是否做了标记
+	-[Frame is ignored: False]            //是否被忽略
+	-[Protocols in frame: eth:ethertype:ip:tcp] //帧内封装的协议层次结构
+	-[Coloring Rule Name: HTTP]  //着色标记的协议名称
+	-[Coloring Rule String: http || tcp.port == 80 || http2] //着色规则显示的字符串
+
+2、数据链路层以太网帧头部信息--------------------------------------------------------------------MAC地址/IP协议...
+	-Ethernet II, Src: Tp-LinkT_f5:3e:62 (c0:61:18:f5:3e:62), Dst: IntelCor_09:65:a5 (58:fb:84:09:65:a5)
+
+	- Destination: IntelCor_09:65:a5 (58:fb:84:09:65:a5) //目的MAC地址   
+	- Source: Tp-LinkT_f5:3e:62 (c0:61:18:f5:3e:62) //源MAC地址（就是我电脑的MAC地址）
+	- Type: IPv4 (0x0800)   //0x0800表示使用IP协议
+ 
+3、互联网层（网络层）IP包头部信息:	------------------------------------------------------------source destination IP地址/TTL生存时间...
+	Internet Protocol Version 4, Src: 192.168.2.112, Dst: 116.211.185.142
+    0100 .... = Version: 4                   //IPV4协议
+    .... 0101 = Header Length: 20 bytes (5)  //包头长度
+
+	-Differentiated Services Field: 0x00 (DSCP: CS0, ECN: Not-ECT)                               //差分服务字段
+	-Total Length: 52                      //IP包总长度
+	-Identification: 0x3849 (14409)        //标志字段
+	-Flags: 0x02 (Don't Fragment)          //标记字段
+	-Fragment offset: 0                    //分的偏移量
+	-Time to live: 128                     //生存期TTL
+	-Protocol: TCP (6)                     //此包内封装的上层协议为TCP
+	-Header checksum: 0xd100 [validation disabled] //头部数据的校验和
+	-[Header checksum status: Unverified] //头部数据校验状态
+	-Source: 192.168.2.112                //源IP地址
+	-Destination: 116.211.185.142         //目的IP地址
+	-[Source GeoIP: Unknown]              //基于地理位置的IP
+	-[Destination GeoIP: Unknown]
+
+4、传输层TCP数据段头部信息	----------------------------------------------------------------Source Destination 端口/SYN/ACK...
+	Transmission Control Protocol, Src Port: 60606, Dst Port: 80, Seq: 0, Len: 0
+
+	-Source Port: 60606       //源端口号（ecbe）
+	-Destination Port: 80     //目的端口号（0050）
+	-[Stream index: 0]        
+	-[TCP Segment Len: 0]
+	-Sequence number: 0    (relative sequence number)  //序列号（相对序列号）（四个字节fd 3e dd a2）
+	-Acknowledgment number: 0   //确认号（四个字节00 00 00 00）
+	-Header Length: 32 bytes    //头部长度(0x80)
+	-Flags: 0x002 (SYN)         //TCP标记字段
+	-Window size value: 8192    //流量控制的窗口大小（20 00）
+	-[Calculated window size: 8192] 
+	-Checksum: 0x97ad [unverified]   //数据段的校验和(97 ad)
+	-[Checksum Status: Unverified]
+	-Urgent pointer: 0      //紧急指针(00 00)
+	-Options: (12 bytes), Maximum segment size, No-Operation (NOP), Window scale, No-Operation (NOP), No-Operation (NOP), SACK permitted  //选项（可变长度）
+
+OSI七层模型与TCP/IP五层模型
+https://www.cnblogs.com/qishui/p/5428938.html
+	
+OSI七层模型对应的TCP/IP五层模型或者TCP/IP四层模型：
+物理层-------------------------------->物理层
+数据链路层---------------------------->数据链路层
+网络层-------------------------------->网络层
+传输层-------------------------------->传输层
+应用层/表示层/会话层------------------>应用层
+
+
+物理层/数据链路层--------------------->网络接口层
+网络层-------------------------------->网络层
+传输层-------------------------------->传输层
+应用层-------------------------------->应用层
+	
+
+—Source Port是源端口，16位。
+—Destination Port是目的端口，16位。
+—Sequence Number是发送数据包中的第一个字节的序列号，32位。
+—Acknowledgment Number是确认序列号，32位。
+—Data Offset是数据偏移，4位，该字段的值是TCP首部（包括选项）长度乘以4。
+—标志位： 6位，URG表示Urgent Pointer字段有意义：
+ACK表示Acknowledgment Number字段有意义
+PSH表示Push功能，RST表示复位TCP连接
+SYN表示SYN报文（在建立TCP连接的时候使用）
+FIN表示没有数据需要发送了（在关闭TCP连接的时候使用）
+Window表示接收缓冲区的空闲空间，16位，用来告诉TCP连接对端自己能够接收的最大数据长度。
+—Checksum是校验和，16位。
+—Urgent Pointers是紧急指针，16位，只有URG标志位被设置时该字段才有意义，表示紧急数据相对序列号（Sequence Number字段的值）的偏移。
+
+	
+
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+https://wiki.wireshark.org/SampleCaptures#MySQL_protocol
+
+mysql包分析：
+ip.src eq 192.168.1.123 or ip.dst eq 192.168.1.123 and mysql.query contains SELECT
+
+当自己电脑既是客户端又是服务器时，互相访问时流量并没有经过网卡，
+windows系统又没有提供本地回环网络的接口，wireshark在windows系统上默认使用的是WinPcap来抓包的，用它监控网络的话只能看到经过网卡的流量，看不到访问localhost的流量，所以才会出现第一次连接始终没有数据包的状况。
+解决这个问题的两种办法是：要么服务器和客户端不要在同一台机器上，要么用Npcap来替换掉WinPcap，Npcap提供环回接口
+
+TCP三次握手四次挥手详解
+http://www.cnblogs.com/zmlctt/p/3690998.html
+
+TCP 为什么是三次握手，而不是两次或四次？
+https://www.zhihu.com/question/24853633?sort=created
+正恩伸出手说：你看，我手里没有武器。（SYN）【进入SYN_SEND状态，syn=x】
+朗普看了看说：嗯，确实没有。（ACK）于是也伸出手说：你看，我手里也没有武器。（SYN）【进入SYN_RECV状态，syn=k，ack=x + 1】
+正恩看了看说：嗯，看来你确实有诚意。（ACK）【客户端和服务器进入 ESTABLISHED状态 ，ack=k + 1】
+
+正恩说：我要走了。（FIN）【正恩进入FIN_AWAIT_1状态，主动发起关闭，FIN M】
+朗普看了看说：嗯。（ACK）【朗普进入CLOSE_AWAIT状态，正恩进入FIN_AWAIT_2状态,被动关闭，read返回0，ack=M + 1】
+朗普：滚蛋吧。（FIN）【朗普进入LAST_ACK状态,关闭通知正恩，FIN N】
+正恩：嗯，不见。（ACK）【正恩进入time_wait状态,朗普进入关闭状态，ack = N + 1】
+
+报文最大生存时间/2MSL（Maximum Segment Lifetime）：
+协议规定主动关闭一方，进入FIN_WAIT_2->TIME_WAIT，必须等待2MSL（MSL为最大报文段生存时间，LWIP为1分钟，windows为2分钟）时间然后才进入CLOSED，删除TCP控制块。在2MSL等待时间内迟到的报文段将被抛弃。
+
+2MSL等待的原因：
+报文段有生存时间，当连接关闭时，有可能收到迟到的报文段。这时，若立马就建立新的连接（同一端口），那么新的连接就会接收迟到的报文，误以为是发给自己的。另一个原因是可靠的实现全双工连接的终止。
+
+TCP三次握手四次挥手最通俗理解
+https://blog.csdn.net/du5006150054/article/details/80157447
+
+TCP共有6个标志位，分别是：
+	SYN(synchronous),建立联机。
+	ACK(acknowledgement),确认。
+	PSH(push),传输。
+	FIN(finish),结束。
+	RST(reset),重置。
+	URG(urgent),紧急。
+ 
+
+tcp短连接：数据发送完成后就关闭连接，下次发送数据时重新建立连接，适用于连接频率很低的情况（比如网页访问）
+tcp长连接：数据发送完后，并不关闭连接，通过相互发送校验包保持连接，再次发送数据时不用再重新建立连接，适用于连接频率很高的情况
+
+HTTP的长连接和短连接本质上是TCP长连接和短连接。
+
+HTTP/1.1起，默认使用长连接，用以保持连接特性。使用长连接的HTTP协议，会在响应头有加入这行代码：
+Connection:keep-alive 
+	
+
+TCP短连接的情况:
+	client向server发起连接请求，server接到请求，然后双方建立连接。client向server 发送消息，server回应client，然后一次读写就完成了，这时候双方任何一个都可以发起close操作，不过一般都是client先发起 close操作。
+	为什么呢，一般的server不会回复完client后立即关闭连接的，当然不排除有特殊的情况。
+	从上面的描述看，短连接一般只会在 client/server间传递一次读写操作
+短连接的优点是：管理起来比较简单，存在的连接都是有用的连接，不需要额外的控制手段
+
+长连接的情况：
+	client向server发起连接，server接受client连接，双方建立连接。Client与server完成一次读写之后，它们之间的连接并不会主动关闭，后续的读写操作会继续使用这个连接。
+	
+
+
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+过滤规则（IP根据ping www.12306.cn得到）：
+ip.addr == 218.58.206.78 && ssl
+
+使用Wireshark解密TLS 1.3流量
+https://www.jianshu.com/p/9b34d2bbcb9f
+
+那么如何配置 WSSLKEYLOGFILE 呢？主要包含两个步骤：
+	设置环境变量 WSSLKEYLOGFILE（在 Windows 中设置非常简单），定义一个文件目录（Chrome 和 Firefox 浏览器就是将会话密钥导入到这个文件中），比如文件是 c:\ssl.log。
+	在 Wireshark 中打开【编辑】-【首选项】-【Protocols】->【SSL】，然后设置 【Pre-Master-Secret log filename】，具体见下图。
+
+使用wireshark分析TLS
+https://www.cnblogs.com/lv6965/p/7859925.html
+
+https://blog.csdn.net/javajiawei/article/details/50622749
+
+传输层安全协议SSL/TLS的Java平台实现简介和Demo演示
+http://www.52im.net/thread-327-1-1.html
+
+从协议内部的功能层面上来看，SSL/TLS 协议可分为两层：
+SSL/TLS 记录协议（SSL/TLS Record Protocol）：它建立在可靠的传输层协议（如 TCP）之上，为上层协议提供数据封装、压缩、加密等基本功能。
+SSL/TLS 握手协议（SSL/TLS Handshake Protocol）：它建立在 SSL/TLS 记录协议之上，用于在实际的数据传输开始前，通讯双方进行身份认证、协商加密算法、交换加密密钥等初始化协商功能。
+
+从协议使用方式来看，又可以分成两种类型：
+SSL/TLS 单向认证：就是用户到服务器之间只存在单方面的认证，即客户端会认证服务器端身份，而服务器端不会去对客户端身份进行验证。首先，客户端发起握手请求，服务器收到握手请求后，会选择适合双方的协议版本和加密方式。然后，再将协商的结果和服务器端的公钥一起发送给客户端。客户端利用服务器端的公钥，对要发送的数据进行加密，并发送给服务器端。服务器端收到后，会用本地私钥对收到的客户端加密数据进行解密。然后，通讯双方都会使用这些数据来产生双方之间通讯的加密密钥。接下来，双方就可以开始安全通讯过程了。
+SSL/TLS 双向认证：就是双方都会互相认证，也就是两者之间将会交换证书。基本的过程和单向认证完全一样，只是在协商阶段多了几个步骤。在服务器端将协商的结果和服务器端的公钥一起发送给客户端后，会请求客户端的证书，客户端则会将证书发送给服务器端。然后，在客户端给服务器端发送加密数据后，客户端会将私钥生成的数字签名发送给服务器端。而服务器端则会用客户端证书中的公钥来验证数字签名的合法性。建立握手之后过程则和单向通讯完全保持一致。
+
+--------------------------------------------------------分割线-------------------------------------------------------------------------------
+Client									Server
+
+Client Hello                            
+你好！                                  
+                                        Server Hello
+                                        嗯，你好！
+										
+                                        Certificate
+                                        我的证书给你，验证我吧
+
+                                        Server Key Exchange
+                                        这是我给你的加密密钥相关的东东
+
+                                        Server Hello Done
+                                        好，我说完了
+
+Client Key Exchange
+这是我给你的加密密钥相关的东东 
+
+Change Cipher Spec
+准备转换成密文了哦
+ 
+Encrypted Handshake Message
+%……&*4 （密文思密达）
+
+                                        Change Cipher Spec
+                                        我也转换密文了
+ 
+                                        Encrypted Handshake Message
+                                        #%&……* （密文思密达）
+
+
+Application Data
+%&￥&%*……（HTTP密文数据）
+
+                                       Application Data
+                                       **……&%（HTTP密文数据）
+
+Encrypted Alert
+警告（实际就是说完了，拜拜~）
+
+ 
+
+chorme新标签页，以谷歌引擎的话，报以下错误！因为谷歌默认会打开：https://www.google.com/_/chrome/newtab?ie=UTF-8，切换成百度引擎就ok了。。是自己问题吗？？？
+org.apache.http.conn.HttpHostConnectException: Connect to www.google.com:443 [www.google.com/31.13.72.34] failed: Connection timed out: connect
+	at org.apache.http.impl.conn.DefaultHttpClientConnectionOperator.connect(DefaultHttpClientConnectionOperator.java:159)
+	at org.apache.jmeter.protocol.http.sampler.HTTPHC4Impl$JMeterDefaultHttpClientConnectionOperator.connect(HTTPHC4Impl.java:331)
+	at org.apache.http.impl.conn.PoolingHttpClientConnectionManager.connect(PoolingHttpClientConnectionManager.java:373)
+	at org.apache.http.impl.execchain.MainClientExec.establishRoute(MainClientExec.java:394)
+	at org.apache.http.impl.execchain.MainClientExec.execute(MainClientExec.java:237)
+	at org.apache.http.impl.execchain.ProtocolExec.execute(ProtocolExec.java:185)
+	at org.apache.http.impl.execchain.RetryExec.execute(RetryExec.java:89)
+	at org.apache.http.impl.execchain.RedirectExec.execute(RedirectExec.java:110)
+	at org.apache.http.impl.client.InternalHttpClient.doExecute(InternalHttpClient.java:185)
+	at org.apache.http.impl.client.CloseableHttpClient.execute(CloseableHttpClient.java:83)
+	at org.apache.jmeter.protocol.http.sampler.HTTPHC4Impl.executeRequest(HTTPHC4Impl.java:832)
+	at org.apache.jmeter.protocol.http.sampler.HTTPHC4Impl.sample(HTTPHC4Impl.java:570)
+	at org.apache.jmeter.protocol.http.sampler.HTTPSamplerProxy.sample(HTTPSamplerProxy.java:67)
+	at org.apache.jmeter.protocol.http.sampler.HTTPSamplerBase.sample(HTTPSamplerBase.java:1231)
+	at org.apache.jmeter.protocol.http.proxy.Proxy.run(Proxy.java:236)
+Caused by: java.net.ConnectException: Connection timed out: connect
+	at java.net.DualStackPlainSocketImpl.connect0(Native Method)
+	at java.net.DualStackPlainSocketImpl.socketConnect(DualStackPlainSocketImpl.java:79)
+	at java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:350)
+	at java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:206)
+	at java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:188)
+	at java.net.PlainSocketImpl.connect(PlainSocketImpl.java:172)
+	at java.net.SocksSocketImpl.connect(SocksSocketImpl.java:392)
+	at java.net.Socket.connect(Socket.java:589)
+	at org.apache.http.conn.ssl.SSLConnectionSocketFactory.connectSocket(SSLConnectionSocketFactory.java:339)
+	at org.apache.jmeter.protocol.http.sampler.hc.LazyLayeredConnectionSocketFactory.connectSocket(LazyLayeredConnectionSocketFactory.java:92)
+	at org.apache.http.impl.conn.DefaultHttpClientConnectionOperator.connect(DefaultHttpClientConnectionOperator.java:142)
+
+
+
+	

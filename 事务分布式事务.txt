@@ -1,0 +1,81 @@
+X/Open组织（即现在的Open Group）定义了分布式事务处理模型。
+X/Open DTP模型（1994）包括应用程序（AP）、事务管理器（TM）、资源管理器（RM）、通信资源管理器（CRM）四部分。
+XA就是X/Open DTP定义的交易中间件与数据库之间的接口规范（即接口函数），交易中间件用它来通知数据库事务的开始、结束以及提交、回滚等。XA接口函数由数据库厂商提供。
+通常情况下，交易中间件与数据库通过XA 接口规范，使用两阶段提交来完成一个全局事务，XA规范的基础是两阶段提交协议。 
+JTA(Java Transaction API)是符合X/Open DTP模型的，事务管理器和资源管理器之间也使用了XA协议。 本质上也是借助两阶段提交协议来实现分布式事务的。
+JTA事务管理则由JTA容器实现，J2ee框架中事务管理器与应用程序，资源管理器，以及应用服务器之间的事务通讯。
+
+Java事务API（Java Transaction API，简称JTA ） 是一个Java企业版 的应用程序接口，在Java环境中，允许完成跨越多个XA资源的分布式事务。
+
+
+CAP定理
+CAP理论认为在分布式的环境下设计和部署系统时，有3个核心的需求：
+Consistency，Availability和Partition Tolerance，即CAP。
+Consistency：一致性，这个和数据库ACID的一致性类似，但这里关注的所有数据节点上的数据一致性和正确性，而数据库的ACID关注的是在在一个事务内，对数据的一些约束。系统在执行过某项操作后仍然处于一致的状态。在分布式系统中，更新操作执行成功后所有的用户都应该读取到最新值。
+Availability：可用性，每一个操作总是能够在一定时间内返回结果。需要注意“一定时间”和“返回结果”。“一定时间”是指，系统结果必须在给定时间内返回。“返回结果”是指系统返回操作成功或失败的结果。
+Partition Tolerance：分区容忍性，是否可以对数据进行分区。这是考虑到性能和可伸缩性。
+
+
+典型的分布式事务实例
+跨行转账问题是一个典型的分布式事务，用户A向B的一个转账1000，要进行A的余额-1000，B的余额+1000，显然必须保证这两个操作的事务性。
+类似的还有，电商系统中，当有用户下单后，除了在订单表插入记，还要在商品表更新库存等，特别是随着微服务架构的流行，分布式事务的场景更变得更普遍。
+
+
+两阶段提交无法解决的问题:
+当协调者出错，同时参与者也出错时，两阶段无法保证事务执行的完整性。
+考虑协调者再发出commit消息之后宕机，而唯一接收到这条消息的参与者同时也宕机了。
+那么即使协调者通过选举协议产生了新的协调者，这条事务的状态也是不确定的，没人知道事务是否被已经提交
+
+
+三阶段提交协议和两阶段提交协议的不同:
+对于协调者(Coordinator)和参与者(Cohort)都设置了超时机制（在2PC中，只有协调者拥有超时机制，即如果在一定时间内没有收到cohort的消息则默认失败）。
+在2PC的准备阶段和提交阶段之间，插入预提交阶段，使3PC拥有CanCommit、PreCommit、DoCommit三个阶段。
+PreCommit是一个缓冲，保证了在最后提交阶段之前各参与节点的状态是一致的。
+
+
+三阶段提交协议的缺点:
+如果进入PreCommit后，Coordinator发出的是abort请求，假设只有一个Cohort收到并进行了abort操作，
+而其他对于系统状态未知的Cohort会根据3PC选择继续Commit，此时系统状态发生不一致性。
+
+1PC = Commit-----------单一情况
+2PC = PrePare+Commit
+3PC = Can Commit + PrePare commit + Do Commit
+TCC = Try + Confirm + Cancel（是基于补偿型事务的AP系统的一种实现, 具有最终一致性）
+
+Cancel：取消执行业务操作
+
+对分布式事务及两阶段提交、三阶段提交的理解
+https://www.cnblogs.com/binyue/p/3678390.html
+
+分布式事务TCC（try-confirm-cancel）
+https://blog.csdn.net/u010412301/article/details/78410933
+
+TCC和两阶段分布式事务处理的区别
+https://blog.csdn.net/Paranoia_ZK/article/details/79481976
+
+
+Try：预留业务资源
+Confirm：确认执行业务操作
+
+
+
+					脏读（读到没有提交的事务）				（不可重复度）虚读（解决脏读，存在一个事务读到的数据不一样，在第一次与第二次读中被另外一个事务修改了）						幻读（解决脏读和虚读，读到数据量不一致，在第一次与第二次中，其他事务插入了导致的）
+read uncommit		FALSE									FALSE																														FALSE
+read commit			TRUE									FALSE																														FALSE
+repeatable read		TRUE									TRUE																														FALSE
+serialize			TRUE									TRUE																														TRUE
+
+数据库事务的实现方式主要有两种：
+	基于锁的；
+	基于时间戳的，现在主流的实现就是基于时间戳的方式的一种，就是大家熟悉的MVCC机制；
+
+	
+主要解决幻读问题：	
+排他锁：select * from table for update
+
+共享锁：select * from table lock in share mode
+	
+悲观锁：select * from table for update
+
+乐观锁：靠表设计和代码来实现（表中添加version版本字段或者timestamp时间戳字段）
+	
