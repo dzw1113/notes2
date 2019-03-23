@@ -1,0 +1,116 @@
+# 1.创建日志表
+DROP TABLE IF EXISTS syslogs;
+CREATE TABLE `syslogs` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `content` VARCHAR(16) DEFAULT NULL,
+  `ip` VARCHAR(16) DEFAULT NULL,
+  `createtime` DATETIME NOT NULL,
+  PRIMARY KEY (`id`,`createtime`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
+ 
+# 2.测试数据
+DELIMITER //
+DROP PROCEDURE IF EXISTS test_data;
+CREATE PROCEDURE test_data(IN num INT )
+BEGIN
+    DECLARE v1 INT DEFAULT 0;
+    DECLARE ipVal VARCHAR(50);
+    DECLARE timeVal VARCHAR(50);
+    DECLARE contentVal VARCHAR(50);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION ROLLBACK;
+    START TRANSACTION;
+    WHILE v1 < num
+    DO
+        SET v1 = v1 +1;
+        SET ipVal = CONCAT(ROUND(1+RAND()*254),'.',ROUND(1+RAND()*254),'.',ROUND(1+RAND()*254),'.',ROUND(1+RAND()*254));
+        SET contentVal = 'test';
+        SET timeVal = CONCAT(ROUND(2014 + RAND()*2),'-',ROUND(1 + RAND()*11),'-',ROUND(1 + RAND()*27),' ',ROUND(1+RAND()*22),':',ROUND(1+RAND()*58),':',ROUND(1+RAND()*58));
+        INSERT INTO syslogs(content,ip,createtime) VALUES ('test',ipVal,timeVal);
+    END WHILE;
+    DELETE FROM syslogs WHERE createtime > NOW();
+    COMMIT;
+END
+//
+
+call test_data(500000);
+select * from syslogs;
+select count(1) from syslogs;
+/*
+ *初始化表分区
+ *表没有数据，添加本月分区
+ *表有数据，将所有数据按月分区
+ @tableName 表名
+ @columName 时间字段列名
+*/
+delimiter //
+drop procedure if exists partitionInit;
+create procedure partitionInit(IN tableName varchar(50),IN columName varchar(50))
+begin
+    set @s0 = concat('select max(',columName,') into @a from ',tableName);
+    prepare stmt0 from @s0;
+    execute stmt0;
+    deallocate prepare stmt0;
+
+    set @s1 = concat('select min(',columName,') into @b from ',tableName);
+    prepare stmt1 from @s1;
+    execute stmt1;
+    deallocate prepare stmt1;
+
+    set @maxDate = @a;
+    set @minDate = @b;
+    set @s2 = concat('alter table ',tableName,' partition by RANGE(to_days(',columName,'))(');
+
+    set @endDate = now();
+    if @minDate is null
+    then set @minDate = @endDate;
+         set @maxDate = @endDate;
+    end if;
+    set @minDate = date(date(@minDate)-day(@minDate)+1);
+    set @maxDate = date(date(@maxDate)-day(@maxDate)+1);
+
+    while to_days(@minDate)<to_days(@maxDate)
+      do
+      set @s2= concat(@s2,' PARTITION ',tableName,'_',date_format(@minDate,'%Y%m'),' VALUES less than (to_days("',date_add(@minDate,interval 1 month),'")),');
+      set @minDate=  date_add(@minDate,interval 1 month);
+    end while;
+
+    set @s2=concat(@s2,' PARTITION ',tableName,'_',date_format(@minDate,'%Y%m'),' VALUES less than (to_days("',date_add(@minDate,interval 1 month),'")));');
+    prepare stmt2 from @s2;
+    execute stmt2;
+    deallocate prepare stmt2;
+end
+//
+ 
+
+/*
+ *添加下月表分区 前提：表已经分区过
+ @tableName 表名
+ @columName 时间字段列名
+*/
+delimiter //
+drop procedure if exists partitionAdd;
+create procedure partitionAdd(IN tableName varchar(50),IN columName varchar(50))
+begin
+    set @enddate = date_add(date(now())-day(now())+1,interval 2 month);
+    set @s=concat('alter table ',tableName,' add partition (partition ',tableName,'_',date_format(date_add(date(now())-day(now())+1,interval 1 month),'%Y%m'),' VALUES less than (to_days("',@enddate,'")));');
+    prepare stmt from @s;
+    execute stmt;
+    deallocate prepare stmt;
+end
+//
+ 
+# 5.定时任务调度
+drop EVENT if exists autoPartition;
+CREATE EVENT autoPartition
+    ON SCHEDULE
+    EVERY 1 month
+    DO
+    call partitionAdd('syslogs','createtime');
+
+
+select * from syslogs;
+
+select * from information_schema.`EVENTS`;
+
+show variables like 'event_scheduler';
+set global event_scheduler=on;

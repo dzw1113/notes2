@@ -1,0 +1,52 @@
+通俗版解释网关，IP地址，ARP欺骗，DDOS攻击
+https://www.cnblogs.com/GumpYan/p/5780857.html
+
+例子解释ARP的作用
+https://blog.csdn.net/u014563989/article/details/52777691
+
+call start 区别
+https://www.cnblogs.com/Braveliu/p/5078283.html
+
+dns是将域名与IP联系
+arp是将IP与mac联系
+arp欺骗：伪装IP-MAC对应关系，从而造成欺骗
+dos攻击：大量无效链接，造成主机无法及时处理，以至于主机缓慢，正常用户访问不了目标网站。
+ddos攻击（流量攻击）：dos是一对一的关系，ddos是分布式攻击，DOS和DDOS都是攻击目标服务器的带宽和连通性，使得目标服务器的带宽资源耗尽，无法正常运行。
+
+
+瑞士军刀：nc.exe
+扫描工具：xscan.exe
+命令行方式嗅探器: xsniff.exe
+终端服务密码破解: tscrack.exe
+OpenTelnet.exe (远程开启telnet工具)
+
+
+ping 的作用：简单来说，就是判断网站的延迟或是连通率。形象的说就是通过露西这个名字查出露西家住哪里，并计算出A从自己家到B家走个来回需要多长时间，路上堵不堵车。
+ping 的用法：ping 域名
+
+tracert 的作用：从你的电脑到你的网站，中间经过了多少个网络节点。换句话说，从A这里到B家需要走多少条街～进而可以知道到底是哪条路出了问题。
+tracert 的用法：tracert 域名
+
+询问一个服务的配置
+sc qc mysqls
+
+net view 查看本地局域网内开启了哪些共享
+
+
+net password 密码 更改系统登陆密码
+
+
+查看cpu型号
+wmic cpu get name
+
+wmic 获取进程名称以及可执行路径:
+wmic process get name,executablepath
+
+wmic 创建新进程
+wmic process call create "C:\Program Files\Tencent\QQ\QQ.exe"
+
+Hyperic-Sigar简介
+https://blog.csdn.net/liyong199012/article/details/20302761
+
+vmware vfabric 家族
+https://www.cnblogs.com/javaleon/p/3945811.html

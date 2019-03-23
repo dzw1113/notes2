@@ -1,0 +1,108 @@
+
+===========================================================================================================================插件==================================================================================
+idea 插件的使用 进阶篇(个人收集使用中的)
+https://www.cnblogs.com/huaxingtianxia/p/6703315.html
+
+IntelliJ IDEA插件系列
+https://www.cnblogs.com/amylis_chen/p/9067915.html
+
+
+Eclipse Code Formatter	使用 Eclipse 的代码格式化风格，在一个团队中如果公司有规定格式化风格，这个可以使用。	https://plugins.jetbrains.com/plugin/6546?pr=idea
+
+
+CamelCase 驼峰式命名和下划线命名交替变化 https://plugins.jetbrains.com/plugin/7160?pr=idea
+
+
+收费插件：
+Jindent-Source Code Formatter	自定义类、方法、doc、变量注释模板	http://plugins.jetbrains.com/plugin/2170?pr=idea 
+
+在intellij中使用checkStyle进行代码规范
+https://www.cnblogs.com/zhaopengcheng/p/7016147.html
+===========================================================================================================================Java类/方法注释==================================================================================
+https://blog.csdn.net/qq_34581118/article/details/78409782#生成类注解模板
+
+https://yq.aliyun.com/articles/73449
+
+https://blog.csdn.net/liqing0013/article/details/84104419
+
+Editor -> File and Code Templates -> Files -> Class
+在#parse("File Header.java")下添加：
+
+/**
+*
+* @description: ${description}
+* @author: dzw
+* @date: ${YEAR}/${MONTH}/${DAY} ${HOUR}:${MINUTE}
+**/
+
+
+Editor -> Live Templates -> 点击右边加号为自己添加一个Templates Group -> 然后选中自己的Group再次点击加号添加Live Templates
+在abbreviation(触发单词)：**   Description:方法注释
+
+Templates text改为：
+
+**
+ * @description TODO
+ * @author dzw        
+ * @date $date$ $time$
+ * @param $param$
+ * @return $return$
+ **/
+ 
+ 
+Edit Variable：
+date ：date()
+time ：time()
+param ： methodParameters()
+return ：methodReturnType()
+
+
+Templates text改为：
+**
+ * @description TODO
+ * @author dzw        
+ * @date $date$ $time$ 
+$param$
+ * @return $return$
+ **/
+ 
+ 
+Edit Variable：
+date ：date()
+time ：time()
+param ： groovyScript("def result=''; def params=\"${_1}\".replaceAll('[\\\\[|\\\\]|\\\\s]', '').split(',').toList(); for(i = 0; i < params.size(); i++) {result+=' * @param ' + params[i] + ((i < params.size() - 1) ? ' \\n' : '')}; return result", methodParameters())
+return ：methodReturnType()
+
+
+
+
+<template name="log" value="private static final Logger log = LoggerFactory.getLogger($class$.class);" description="日志" toReformat="false" toShortenFQNames="true">
+  <variable name="class" expression="className()" defaultValue="" alwaysStopAt="true" />
+  <context>
+    <option name="JAVA_CODE" value="true" />
+  </context>
+</template>
+
+<template name="printval" value="log.info(&quot;$MSG$ &quot; + $params$);" description="打印上下文" toReformat="false" toShortenFQNames="true">
+  <variable name="MSG" expression="" defaultValue="" alwaysStopAt="true" />
+  <variable name="params" expression="groovyScript(&quot;'\&quot;' + _1.collect { it + ' = [\&quot; + ' + it + ' + \&quot;]'}.join(', ') + '\&quot;'&quot;, methodParameters())" defaultValue="" alwaysStopAt="true" />
+  <context>
+    <option name="JAVA_CODE" value="true" />
+  </context>
+</template>
+
+<template name="**" value="**&#10; * @description TODO&#10; * @author dzw        &#10; * @date $date$ $time$ &#10;$param$&#10; * @return $return$&#10; **/" shortcut="ENTER" description="方法注释" toReformat="false" toShortenFQNames="true">
+  <variable name="date" expression="date()" defaultValue="" alwaysStopAt="true" />
+  <variable name="time" expression="time()" defaultValue="" alwaysStopAt="true" />
+  <variable name="param" expression="groovyScript(&quot;def result=''; def params=\&quot;${_1}\&quot;.replaceAll('[\\\\[|\\\\]|\\\\s]', '').split(',').toList(); for(i = 0; i &lt; params.size(); i++) {result+=' * @param ' + params[i] + ((i &lt; params.size() - 1) ? ' \\n' : '')}; return result&quot;, methodParameters())" defaultValue="" alwaysStopAt="true" />
+  <variable name="return" expression="methodReturnType()" defaultValue="" alwaysStopAt="true" />
+  <context>
+    <option name="JAVA_CODE" value="true" />
+  </context>
+</template>
+ 
+<template name="try" value="try{&#10;    &#10;}catch(Exception e){&#10;    e.printStackTrace();&#10;}" description="异常" toReformat="false" toShortenFQNames="true">
+  <context>
+    <option name="JAVA_CODE" value="true" />
+  </context>
+</template> 
