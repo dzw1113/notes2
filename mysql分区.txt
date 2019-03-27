@@ -7,6 +7,7 @@ CREATE TABLE `syslogs` (
   `createtime` DATETIME NOT NULL,
   PRIMARY KEY (`id`,`createtime`)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
  
 # 2.测试数据
 DELIMITER //
@@ -32,9 +33,14 @@ BEGIN
 END
 //
 
-call test_data(500000);
-select * from syslogs;
-select count(1) from syslogs;
+# 插入一千万
+call test_data(1000*10000);
+
+# 插入一千万
+CREATE TABLE syslogs1
+SELECT * FROM syslogs;
+
+
 /*
  *初始化表分区
  *表没有数据，添加本月分区
@@ -82,6 +88,19 @@ end
 //
  
 
+call partitionInit('syslogs','createtime');-- 1000*10000耗时较长。。。275.896s
+
+SELECT PARTITION_NAME,TABLE_ROWS
+FROM INFORMATION_SCHEMA.PARTITIONS
+WHERE TABLE_NAME = 'syslogs';
+
+SELECT PARTITION_NAME,TABLE_ROWS
+FROM INFORMATION_SCHEMA.PARTITIONS
+WHERE TABLE_NAME = 'syslogs1';
+
+SELECT SQL_NO_CACHE * FROM syslogs WHERE createtime <= '2014-03-03';
+SELECT SQL_NO_CACHE * FROM syslogs1 WHERE createtime <= '2014-03-03';
+
 /*
  *添加下月表分区 前提：表已经分区过
  @tableName 表名
@@ -114,3 +133,20 @@ select * from information_schema.`EVENTS`;
 
 show variables like 'event_scheduler';
 set global event_scheduler=on;
+
+
+
+-- ============================================================hash 分区
+CREATE TABLE tbhash (
+    id INT NOT NULL,
+    store_id INT
+)
+PARTITION BY HASH(store_id)
+PARTITIONS 4
+;
+ALTER TABLE tbhash ADD INDEX ix_store_id(store_id);
+
+INSERT INTO tbhash() VALUES(1,100),(1,101),(2,102),(3,103),(4,104);
+
+SELECT *
+FROM information_schema.PARTITIONS WHERE TABLE_SCHEMA=SCHEMA() AND TABLE_NAME='tbhash';
