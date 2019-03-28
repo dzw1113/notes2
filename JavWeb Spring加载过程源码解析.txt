@@ -13,7 +13,7 @@ https://www.cnblogs.com/hello-yao-ge/p/5891435.html
 ContextLoaderListener因为它实现了ServletContextListener这个接口，在web.xml配置这个监听器，启动容器时，就会默认执行它实现的方法。在ContextLoaderListener中关联了ContextLoader这个类，所以整个加载配置过程由ContextLoader来完成。
 
 
-第一段，说明ContextLoader可以由 ContextLoaderListener和ContextLoaderServlet生成。如果查看ContextLoaderServlet的API，可以看到它也关联了ContextLoader这个类而且它继承了HttpServlet类
+第一段，说明ContextLoader可以由 ContextLoaderListener和ContextLoaderServlet(已作废)生成。如果查看ContextLoaderServlet的API，可以看到它也关联了ContextLoader这个类而且它继承了HttpServlet类
 第二段，ContextLoader创建的是 XmlWebApplicationContext这样一个类，它实现的接口是WebApplicationContext->ConfigurableWebApplicationContext->ApplicationContext->BeanFactory,这样一来spring中的所有bean都由这个类来创建
 第三段，讲如何部署applicationContext的xml文件，如果在web.xml中不写任何参数配置信息，默认的路径是"/WEB-INF/applicationContext.xml，在WEB-INF目录下创建的xml文件的名称必须是applicationContext.xml。
 如果是要自定义文件名可以在web.xml里加入contextConfigLocation这个context参数：
@@ -75,3 +75,5 @@ refresh:514, AbstractApplicationContext (org.springframework.context.support)---
 configureAndRefreshWebApplicationContext:443, ContextLoader (org.springframework.web.context)------>配置以下信息：设置contextId，默认是：org.springframework.web.context.WebApplicationContext:/  ,设置：configLocationParam，默认读取web.xml里的，刷新：wac.refresh();
 initWebApplicationContext:325, ContextLoader (org.springframework.web.context)-------->真正的初始化，初始化WebApplicationContext（实现类：CONTEXT_CLASS_PARAM=org.springframework.web.context.support.XmlWebApplicationContext）
 contextInitialized:107, ContextLoaderListener (org.springframework.web.context)--------->调用ContextLoader初始化
+
+
