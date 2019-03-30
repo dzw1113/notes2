@@ -77,7 +77,7 @@ web.xml中的加载顺序：context-param -> listener -> filter -> servlet
 		}
 	}
 	
-	
+	================================================分割线================================================分割线================================================分割线
 	protected WebApplicationContext createWebApplicationContext(ServletContext sc) {
 		Class<?> contextClass = determineContextClass(sc);============================返回了ConfigurableWebApplicationContext的Class类，这个方法有很多层，看到最后是调用了ContextLoader.properties配置文件，这个配置文件在Spring的包中是和ContextLoader.class文件放在一起的，没有开放给用户使用，不可配置
 		if (!ConfigurableWebApplicationContext.class.isAssignableFrom(contextClass)) {
@@ -105,6 +105,8 @@ web.xml中的加载顺序：context-param -> listener -> filter -> servlet
 		}
 
 		wac.setServletContext(sc);
+		=====================================读取contextConfigLocation中的xml配置目录，设置WebApplicationContext配置文件setConfigLocation
+		=====================================classpath:spring-datasource.xml,classpath:spring.xml,classpath:spring-mvc.xml,classpath:spring-mybatis.xml,classpath:spring-security.xml,
 		String configLocationParam = sc.getInitParameter(CONFIG_LOCATION_PARAM);
 		if (configLocationParam != null) {
 			wac.setConfigLocation(configLocationParam);
@@ -169,11 +171,13 @@ org.springframework.context.support.AbstractApplicationContext
 				postProcessBeanFactory(beanFactory);
 
 				// Invoke factory processors registered as beans in the context.
-				这一步也是对bean工厂进行一些处理。这一步主要是调用所有的bean工厂处理器（BeanFactoryPostProcessor）对bean工厂进行一些处理。这个方法必须在所有的singleton初始化之前调用。
+				这一步也是对bean工厂进行一些处理。这一步主要是调用所有的bean工厂处理器（BeanFactoryPostProcessor）对bean工厂进行一些处理。
+				这个方法必须在所有的singleton初始化之前调用。
 				invokeBeanFactoryPostProcessors(beanFactory);
 
 				// Register bean processors that intercept bean creation.
 				注册用来拦截bean创建的BeanPostProcessor bean.这个方法需要在所有的application bean初始化之前调用。把这个注册的任务委托给了PostProcessorRegistrationDelegate来完成。
+				//同时解析
 				registerBeanPostProcessors(beanFactory);
 
 				// Initialize message source for this context.
@@ -226,7 +230,158 @@ org.springframework.context.support.AbstractApplicationContext
 			}
 		}
 	}
-	 
+	================================================分割线================================================分割线================================================分割线
+	AbstractApplicationContext
+	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
+		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
+
+		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime
+		// (e.g. through an @Bean method registered by ConfigurationClassPostProcessor)
+		if (beanFactory.getTempClassLoader() == null && beanFactory.containsBean(LOAD_TIME_WEAVER_BEAN_NAME)) {
+			beanFactory.addBeanPostProcessor(new LoadTimeWeaverAwareProcessor(beanFactory));
+			beanFactory.setTempClassLoader(new ContextTypeMatchClassLoader(beanFactory.getBeanClassLoader()));
+		}
+	}
+	================================================分割线================================================分割线================================================分割线
+	PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors
+	
+	public static void invokeBeanFactoryPostProcessors(
+			ConfigurableListableBeanFactory beanFactory, List<BeanFactoryPostProcessor> beanFactoryPostProcessors) {
+
+		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
+		Set<String> processedBeans = new HashSet<String>();
+		
+		//先判断beanFactory是不是BeanDefinitionRegistry类型，这里的beanFactory
+		//是DefaultListableBeanFactory类型实现了BeanDefinitionRegistry接口
+		if (beanFactory instanceof BeanDefinitionRegistry) {
+			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+			List<BeanFactoryPostProcessor> regularPostProcessors = new LinkedList<BeanFactoryPostProcessor>();
+			List<BeanDefinitionRegistryPostProcessor> registryPostProcessors =
+					new LinkedList<BeanDefinitionRegistryPostProcessor>();
+
+			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
+				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
+					BeanDefinitionRegistryPostProcessor registryPostProcessor =
+							(BeanDefinitionRegistryPostProcessor) postProcessor;
+					registryPostProcessor.postProcessBeanDefinitionRegistry(registry);
+					registryPostProcessors.add(registryPostProcessor);
+				}
+				else {
+					regularPostProcessors.add(postProcessor);
+				}
+			}
+
+			// Do not initialize FactoryBeans here: We need to leave all regular beans
+			// uninitialized to let the bean factory post-processors apply to them!
+			// Separate between BeanDefinitionRegistryPostProcessors that implement
+			// PriorityOrdered, Ordered, and the rest.
+			============在spring容器中得到BeanDefinitionRegistryPostProcessor类型的postProcessorName
+			String[] postProcessorNames =
+					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
+
+			// First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
+			List<BeanDefinitionRegistryPostProcessor> priorityOrderedPostProcessors = new ArrayList<BeanDefinitionRegistryPostProcessor>();
+			for (String ppName : postProcessorNames) {
+				============如果确实实现了PriorityOrdered接口
+				if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
+					priorityOrderedPostProcessors.add(beanFactory.getBean(ppName, BeanDefinitionRegistryPostProcessor.class));
+					processedBeans.add(ppName);
+				}
+			}
+			sortPostProcessors(beanFactory, priorityOrderedPostProcessors);
+			registryPostProcessors.addAll(priorityOrderedPostProcessors);
+			invokeBeanDefinitionRegistryPostProcessors(priorityOrderedPostProcessors, registry);
+
+			// Next, invoke the BeanDefinitionRegistryPostProcessors that implement Ordered.
+			postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
+			List<BeanDefinitionRegistryPostProcessor> orderedPostProcessors = new ArrayList<BeanDefinitionRegistryPostProcessor>();
+			for (String ppName : postProcessorNames) {
+				if (!processedBeans.contains(ppName) && beanFactory.isTypeMatch(ppName, Ordered.class)) {
+					orderedPostProcessors.add(beanFactory.getBean(ppName, BeanDefinitionRegistryPostProcessor.class));
+					processedBeans.add(ppName);
+				}
+			}
+			sortPostProcessors(beanFactory, orderedPostProcessors);
+			============registryPostProcessors中存储所有的priorityOrderedPostProcessors
+			registryPostProcessors.addAll(orderedPostProcessors);
+			invokeBeanDefinitionRegistryPostProcessors(orderedPostProcessors, registry);
+
+			// Finally, invoke all other BeanDefinitionRegistryPostProcessors until no further ones appear.
+			boolean reiterate = true;
+			while (reiterate) {
+				reiterate = false;
+				postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
+				for (String ppName : postProcessorNames) {
+					if (!processedBeans.contains(ppName)) {
+						BeanDefinitionRegistryPostProcessor pp = beanFactory.getBean(ppName, BeanDefinitionRegistryPostProcessor.class);
+						registryPostProcessors.add(pp);
+						processedBeans.add(ppName);
+						pp.postProcessBeanDefinitionRegistry(registry);
+						reiterate = true;
+					}
+				}
+			}
+
+			// Now, invoke the postProcessBeanFactory callback of all processors handled so far.
+			invokeBeanFactoryPostProcessors(registryPostProcessors, beanFactory);
+			invokeBeanFactoryPostProcessors(regularPostProcessors, beanFactory);
+		}
+
+		else {
+			// Invoke factory processors registered with the context instance.
+			invokeBeanFactoryPostProcessors(beanFactoryPostProcessors, beanFactory);
+		}
+
+		// Do not initialize FactoryBeans here: We need to leave all regular beans
+		// uninitialized to let the bean factory post-processors apply to them!
+		String[] postProcessorNames =
+				beanFactory.getBeanNamesForType(BeanFactoryPostProcessor.class, true, false);
+
+		// Separate between BeanFactoryPostProcessors that implement PriorityOrdered,
+		// Ordered, and the rest.
+		List<BeanFactoryPostProcessor> priorityOrderedPostProcessors = new ArrayList<BeanFactoryPostProcessor>();
+		List<String> orderedPostProcessorNames = new ArrayList<String>();
+		List<String> nonOrderedPostProcessorNames = new ArrayList<String>();
+		for (String ppName : postProcessorNames) {
+			if (processedBeans.contains(ppName)) {
+				// skip - already processed in first phase above
+			}
+			else if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
+				priorityOrderedPostProcessors.add(beanFactory.getBean(ppName, BeanFactoryPostProcessor.class));
+			}
+			else if (beanFactory.isTypeMatch(ppName, Ordered.class)) {
+				orderedPostProcessorNames.add(ppName);
+			}
+			else {
+				nonOrderedPostProcessorNames.add(ppName);
+			}
+		}
+
+		// First, invoke the BeanFactoryPostProcessors that implement PriorityOrdered.
+		sortPostProcessors(beanFactory, priorityOrderedPostProcessors);
+		invokeBeanFactoryPostProcessors(priorityOrderedPostProcessors, beanFactory);
+
+		// Next, invoke the BeanFactoryPostProcessors that implement Ordered.
+		List<BeanFactoryPostProcessor> orderedPostProcessors = new ArrayList<BeanFactoryPostProcessor>();
+		for (String postProcessorName : orderedPostProcessorNames) {
+			orderedPostProcessors.add(beanFactory.getBean(postProcessorName, BeanFactoryPostProcessor.class));
+		}
+		sortPostProcessors(beanFactory, orderedPostProcessors);
+		invokeBeanFactoryPostProcessors(orderedPostProcessors, beanFactory);
+
+		// Finally, invoke all other BeanFactoryPostProcessors.
+		List<BeanFactoryPostProcessor> nonOrderedPostProcessors = new ArrayList<BeanFactoryPostProcessor>();
+		for (String postProcessorName : nonOrderedPostProcessorNames) {
+			nonOrderedPostProcessors.add(beanFactory.getBean(postProcessorName, BeanFactoryPostProcessor.class));
+		}
+		invokeBeanFactoryPostProcessors(nonOrderedPostProcessors, beanFactory);
+
+		// Clear cached merged bean definitions since the post-processors might have
+		// modified the original metadata, e.g. replacing placeholders in values...
+		beanFactory.clearMetadataCache();
+	}
+	
+	================================================分割线================================================分割线================================================分割线
 	protected void prepareRefresh() {
 		this.startupDate = System.currentTimeMillis();
 		this.closed.set(false);
@@ -248,7 +403,7 @@ org.springframework.context.support.AbstractApplicationContext
 		this.earlyApplicationEvents = new LinkedHashSet<ApplicationEvent>();
 	}
 	
-	
+	================================================分割线================================================分割线================================================分割线
 	/**
 	 * Tell the subclass to refresh the internal bean factory.
 	 * @return the fresh BeanFactory instance
@@ -263,7 +418,7 @@ org.springframework.context.support.AbstractApplicationContext
 		}
 		return beanFactory;
 	}
-	
+	================================================分割线================================================分割线================================================分割线
 	refreshBeanFactory:127, AbstractRefreshableApplicationContext======================================================
 		@Override
 		protected final void refreshBeanFactory() throws BeansException {
@@ -275,7 +430,9 @@ org.springframework.context.support.AbstractApplicationContext
 				DefaultListableBeanFactory beanFactory = createBeanFactory();=======================新建一个Bean工厂。
 				beanFactory.setSerializationId(getId());
 				customizeBeanFactory(beanFactory);=================================================自定义bean工厂。
-				loadBeanDefinitions(beanFactory);======================================================加载BeanDefinition
+				======================================================加载BeanDefinition
+				==========================
+				loadBeanDefinitions(beanFactory);
 				synchronized (this.beanFactoryMonitor) {
 					this.beanFactory = beanFactory;======================================================将创建好的bean工厂的引用交给的context来管理
 				}
@@ -286,7 +443,7 @@ org.springframework.context.support.AbstractApplicationContext
 		}
 		
 		
-		
+	================================================分割线================================================分割线================================================分割线	
 	protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		// Tell the internal bean factory to use the context's class loader etc.
 		============================设置类加载器：存在则直接设置/不存在则新建一个默认类加载器
@@ -350,7 +507,7 @@ org.springframework.context.support.AbstractApplicationContext
 	}	
 	
 	
-	
+	================================================分割线================================================分割线================================================分割线
 	@Override
 	protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		beanFactory.addBeanPostProcessor(new ServletContextAwareProcessor(this.servletContext, this.servletConfig));
@@ -361,7 +518,7 @@ org.springframework.context.support.AbstractApplicationContext
 		WebApplicationContextUtils.registerEnvironmentBeans(beanFactory, this.servletContext, this.servletConfig);
 	}
 	
-	
+	================================================分割线================================================分割线================================================分割线
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
@@ -372,7 +529,7 @@ org.springframework.context.support.AbstractApplicationContext
 			beanFactory.setTempClassLoader(new ContextTypeMatchClassLoader(beanFactory.getBeanClassLoader()));
 		}
 	}
-	
+	================================================分割线================================================分割线================================================分割线
 finishBeanFactoryInitialization:835, AbstractApplicationContext===============================================================了解了Spring初始化过程中两种后置器postProcess的实现原理和调用过程，也明白了BeanDefinition的解析和创建，这次我们继续来分析Spring容器核心创建方法refresh（）的最后一步finishBeanFactoryInitialization(beanFactory)
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
 		// Initialize conversion service for this context.
@@ -409,7 +566,7 @@ finishBeanFactoryInitialization:835, AbstractApplicationContext=================
 		// Instantiate all remaining (non-lazy-init) singletons.
 		beanFactory.preInstantiateSingletons();
 	}
-	
+	================================================分割线================================================分割线================================================分割线
 	preInstantiateSingletons:729, DefaultListableBeanFactory===============================================================
 	
 		@Override
@@ -473,7 +630,7 @@ finishBeanFactoryInitialization:835, AbstractApplicationContext=================
 				}
 			}
 		}
-	
+	================================================分割线================================================分割线================================================分割线
 	
 		第一段:getMergedLocalBeanDefinition=======>getMergedBeanDefinition(beanName, getBeanDefinition(beanName))
 		=======>getMergedBeanDefinition(beanName, bd, null)===这部分是通过getSingleton(beanName)方法去singleton缓存中找bean实例，应该是拿不到的，因为我们是第一次初始化，缓存中肯定不存在。
@@ -552,7 +709,7 @@ finishBeanFactoryInitialization:835, AbstractApplicationContext=================
 			}
 		}
 		
-		
+		================================================分割线================================================分割线================================================分割线
 		第二段：
 		doGetBean:260, AbstractBeanFactory (org.springframework.beans.factory.support)==================>getBean:197, AbstractBeanFactory (org.springframework.beans.factory.support)
 		==================>preInstantiateSingletons:761, DefaultListableBeanFactory (org.springframework.beans.factory.support)
@@ -600,7 +757,7 @@ finishBeanFactoryInitialization:835, AbstractApplicationContext=================
 					return parentBeanFactory.getBean(nameToLookup, requiredType);
 				}
 			}
-
+================================================分割线================================================分割线================================================分割线
 			第三部分先判断并把需要创建的bean打上正在创建标记，也就是开头的if判断加markBeanAsCreated(beanName)方法（这样做的目的是在我创建这个bean之前就先打上创建标记，告诉其它来创建的线程，避免了重复创建，
 			那么这个方法内部肯定是同步的），然后获取到该bean对应的BeanDefinition，在Spring创建初期把bean的初始化信息通过配置文件（xml）和反射等预先存在了BeanDefinition中，当然也包括bean依赖等，
 			所以在这里把BeanDefinition里存储的依赖bean挨个取出来进行实例化
@@ -626,6 +783,7 @@ finishBeanFactoryInitialization:835, AbstractApplicationContext=================
 				}
 
 				// Create bean instance.
+================================================分割线================================================分割线================================================分割线				
 				这部分我们通过单例的代码来进行分析，如果当前bean是Singleton，则调用createBean(beanName, mbd, args)方法，并返回。我们继续看这个方法
 				if (mbd.isSingleton()) {====================================第四段
 					sharedInstance = getSingleton(beanName, new ObjectFactory<Object>() {
@@ -694,7 +852,7 @@ finishBeanFactoryInitialization:835, AbstractApplicationContext=================
 			}
 		}
 		
-		
+================================================分割线================================================分割线================================================分割线		
 		createBean:448, AbstractAutowireCapableBeanFactory====================================第五段
 		@Override
 		protected Object createBean(String beanName, RootBeanDefinition mbd, Object[] args) throws BeanCreationException {
@@ -743,5 +901,5 @@ finishBeanFactoryInitialization:835, AbstractApplicationContext=================
 			}
 			return beanInstance;
 		}
-		
+================================================分割线================================================分割线================================================分割线		
 		最后doCreateBean
